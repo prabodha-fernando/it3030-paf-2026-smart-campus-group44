@@ -36,4 +36,5 @@ frontend/dist/
 frontend/.env.local
 frontend/.env
 
-.vscode/
+.vscode/settings.json
+frontend/.vite/
