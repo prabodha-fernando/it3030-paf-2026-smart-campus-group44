@@ -1,0 +1,58 @@
+spring:
+  application:
+    name: smart-campus
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+  datasource:
+    url: jdbc:mysql://${AZURE_MYSQL_HOST}:3306/${AZURE_MYSQL_DB}?useSSL=true&requireSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: ${AZURE_MYSQL_USER}
+    password: ${AZURE_MYSQL_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 30000
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope: email, profile
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 15MB
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration-ms: 900000
+    refresh-expiration-ms: 604800000
+  frontend-url: ${FRONTEND_URL:http://localhost:5174}
+  allowed-email-domains:
+    - "@gmail.com"
+
+server:
+  port: 8080
+
+logging:
+  level:
+    com.smartcampus: DEBUG
+    org.springframework.security: WARN
