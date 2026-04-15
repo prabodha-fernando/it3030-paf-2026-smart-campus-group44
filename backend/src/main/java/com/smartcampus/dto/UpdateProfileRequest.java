@@ -1,0 +1,21 @@
+package com.smartcampus.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+
+@Data
+public class UpdateProfileRequest {
+    @NotBlank(message = "Display name is required")
+    @Size(max = 100, message = "Display name must not exceed 100 characters")
+    private String displayName;
+
+    @Size(max = 100)
+    private String department;
+
+    @Size(max = 20)
+    private String phone;
+
+    private boolean firstLogin;
+    
+}
