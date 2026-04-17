@@ -8,12 +8,10 @@ export default defineConfig({
   server: {
     port: 5174,
     proxy: {
-      '/api':                    { target: 'http://localhost:8080', changeOrigin: true },
-      '/ws':                     { target: 'ws://localhost:8080', ws: true, changeOrigin: true },
-      '/oauth2/authorization':   { target: 'http://localhost:8080', changeOrigin: true },
-      '/login/oauth2':           { target: 'http://localhost:8080', changeOrigin: true },
-      '/login':                  { target: 'http://localhost:8080', changeOrigin: true }
-      
-    }
+  '/api':                    { target: 'http://localhost:8080', changeOrigin: true },
+  '/ws':                     { target: 'ws://localhost:8080', ws: true, changeOrigin: true },
+  '/oauth2/authorization':   { target: 'http://localhost:8080', changeOrigin: true },
+  '/login/oauth2/code':      { target: 'http://localhost:8080', changeOrigin: true },  // ✅ specific
+}
   }
 })
