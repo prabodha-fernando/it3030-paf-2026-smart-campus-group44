@@ -12,6 +12,7 @@ import OnboardingPage    from './pages/OnboardingPage'
 import DashboardPage     from './pages/DashboardPage'
 import ProfilePage       from './pages/ProfilePage'
 import AdminUsersPage    from './pages/AdminUsersPage'
+import ResourcesPage     from './pages/ResourcesPage'
 
 const AppContent = () => {
   const { user } = useAuth()
@@ -27,6 +28,7 @@ const AppContent = () => {
         <Route element={<PrivateRoute />}>
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/dashboard"  element={<DashboardPage />} />
+          <Route path="/resources"  element={<ResourcesPage />} />
           <Route path="/profile"    element={<ProfilePage />} />
           <Route path="/profile/notifications" element={<ProfilePage />} />
         </Route>
