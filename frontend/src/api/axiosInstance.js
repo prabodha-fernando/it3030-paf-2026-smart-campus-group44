@@ -2,7 +2,8 @@ import axios from 'axios'
 import { API_BASE } from '../utils/constants'
 
 const axiosInstance = axios.create({
-  baseURL: API_BASE,
+  // Fallback to empty string if API_BASE bypasses the Vite proxy
+  baseURL: API_BASE || '', 
   headers: { 'Content-Type': 'application/json' },
 })
 
