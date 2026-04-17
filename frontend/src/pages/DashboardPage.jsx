@@ -15,6 +15,9 @@ const QuickAction = ({ to, icon, label, desc, color }) => (
 
 const DashboardPage = () => {
   const { user, isAdmin } = useAuth()
+  const hour = new Date().getHours()
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+  const firstName = user?.displayName?.split(' ')[0] || 'there'
 
   return (
     <Layout>
@@ -24,7 +27,7 @@ const DashboardPage = () => {
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-xl font-semibold text-stone-900">
-              Good morning, {user?.displayName?.split(' ')[0]} 👋
+              {greeting}, {firstName} 👋
             </h1>
             <p className="text-sm text-stone-500 mt-0.5">Here's what's happening on campus today.</p>
           </div>

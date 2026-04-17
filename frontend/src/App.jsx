@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './context/AuthContext'
 import PrivateRoute from './components/auth/PrivateRoute'
 import NotificationDrawer from './components/notifications/NotificationDrawer'
+import LoadingSpinner from './components/common/LoadingSpinner'
 import useWebSocket from './hooks/useWebSocket'
 import useAuth from './hooks/useAuth'
 
@@ -12,21 +13,28 @@ import OnboardingPage    from './pages/OnboardingPage'
 import DashboardPage     from './pages/DashboardPage'
 import ProfilePage       from './pages/ProfilePage'
 import AdminUsersPage    from './pages/AdminUsersPage'
+import TicketsPage       from './pages/TicketsPage'
 
 const AppContent = () => {
-  const { user } = useAuth()
+  const { user, loading, isAuthenticated } = useAuth()
   useWebSocket(user?.email)
+
+  if (loading) return <LoadingSpinner center />
 
   return (
     <>
       <NotificationDrawer />
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/login"
+          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />}
+        />
         <Route path="/auth/callback" element={<OAuthCallbackPage />} />
 
         <Route element={<PrivateRoute />}>
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/dashboard"  element={<DashboardPage />} />
+          <Route path="/tickets"    element={<TicketsPage />} />
           <Route path="/profile"    element={<ProfilePage />} />
           <Route path="/profile/notifications" element={<ProfilePage />} />
         </Route>

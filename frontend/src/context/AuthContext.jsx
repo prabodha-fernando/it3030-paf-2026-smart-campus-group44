@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { getMe } from '../api/authApi'
+import { AUTH_LOGOUT_EVENT } from '../utils/authEvents'
 
 const AuthContext = createContext(null)
 
@@ -22,6 +23,16 @@ export const AuthProvider = ({ children }) => {
   }, [])
 
   useEffect(() => { loadUser() }, [loadUser])
+
+  useEffect(() => {
+    const handleLogout = () => {
+      setUser(null)
+      setLoading(false)
+    }
+
+    window.addEventListener(AUTH_LOGOUT_EVENT, handleLogout)
+    return () => window.removeEventListener(AUTH_LOGOUT_EVENT, handleLogout)
+  }, [])
 
   const login = (accessToken, refreshToken, userData) => {
     localStorage.setItem('accessToken',  accessToken)
