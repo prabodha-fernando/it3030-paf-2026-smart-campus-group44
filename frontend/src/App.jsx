@@ -13,6 +13,7 @@ import DashboardPage     from './pages/DashboardPage'
 import BookingsPage      from './pages/BookingsPage'
 import ProfilePage       from './pages/ProfilePage'
 import AdminUsersPage    from './pages/AdminUsersPage'
+import ResourcesPage     from './pages/ResourcesPage'
 
 const AppContent = () => {
   const { user } = useAuth()
@@ -29,6 +30,7 @@ const AppContent = () => {
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/dashboard"  element={<DashboardPage />} />
           <Route path="/bookings"   element={<BookingsPage />} />
+          <Route path="/resources"  element={<ResourcesPage />} />
           <Route path="/profile"    element={<ProfilePage />} />
           <Route path="/profile/notifications" element={<ProfilePage />} />
         </Route>
