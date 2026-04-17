@@ -41,10 +41,10 @@ export const NOTIF_CATEGORY_LABELS = {
 }
 
 export const BOOKING_STATUS_COLORS = {
-  PENDING:   'bg-accent-100 text-accent-800',
-  APPROVED:  'bg-primary-100 text-primary-800',
+  PENDING:   'bg-yellow-100 text-yellow-800',
+  APPROVED:  'bg-green-100 text-green-800',
   REJECTED:  'bg-red-100 text-red-700',
-  CANCELLED: 'bg-stone-100 text-stone-600',
+  CANCELLED: 'bg-slate-100 text-slate-700',
 }
 
 export const TICKET_STATUS_COLORS = {

@@ -10,6 +10,7 @@ import LoginPage         from './pages/LoginPage'
 import OAuthCallbackPage from './pages/OAuthCallbackPage'
 import OnboardingPage    from './pages/OnboardingPage'
 import DashboardPage     from './pages/DashboardPage'
+import BookingsPage      from './pages/BookingsPage'
 import ProfilePage       from './pages/ProfilePage'
 import AdminUsersPage    from './pages/AdminUsersPage'
 
@@ -27,6 +28,7 @@ const AppContent = () => {
         <Route element={<PrivateRoute />}>
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/dashboard"  element={<DashboardPage />} />
+          <Route path="/bookings"   element={<BookingsPage />} />
           <Route path="/profile"    element={<ProfilePage />} />
           <Route path="/profile/notifications" element={<ProfilePage />} />
         </Route>
