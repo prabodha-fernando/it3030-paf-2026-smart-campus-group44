@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import Layout from '../components/common/Layout'
 import useAuth from '../hooks/useAuth'
@@ -21,6 +21,7 @@ const STATUS_COLORS = {
   IN_PROGRESS: 'bg-accent-100 text-accent-800',
   RESOLVED: 'bg-primary-100 text-primary-800',
   CLOSED: 'bg-stone-100 text-stone-600',
+  REJECTED: 'bg-red-100 text-red-700',
 }
 
 const PRIORITY_COLORS = {
@@ -40,9 +41,12 @@ const TicketsPage = () => {
   const [attachments, setAttachments] = useState([])
   const [technicians, setTechnicians] = useState([])
   const [assigneeId, setAssigneeId] = useState('')
+  const createFileInputRef = useRef(null)
+  const detailFileInputRef = useRef(null)
 
   const [newComment, setNewComment] = useState('')
   const [detailUploadFileName, setDetailUploadFileName] = useState('No file chosen')
+  const [rejectReason, setRejectReason] = useState('')
   const [createForm, setCreateForm] = useState({
     category: 'FACILITY',
     priority: 'MEDIUM',
@@ -66,6 +70,7 @@ const TicketsPage = () => {
       inProgress: 0,
       resolved: 0,
       closed: 0,
+      rejected: 0,
     }
 
     tickets.forEach((t) => {
@@ -73,6 +78,7 @@ const TicketsPage = () => {
       if (t.status === 'IN_PROGRESS') stats.inProgress += 1
       if (t.status === 'RESOLVED') stats.resolved += 1
       if (t.status === 'CLOSED') stats.closed += 1
+      if (t.status === 'REJECTED') stats.rejected += 1
     })
 
     return stats
@@ -115,6 +121,7 @@ const TicketsPage = () => {
       setSelectedTicket(ticketRes.data)
       setComments(commentsRes.data)
       setAttachments(attachmentsRes.data)
+      setRejectReason(ticketRes.data?.rejectionReason || '')
       setAssigneeId(ticketRes.data?.assignedTo?.id ? String(ticketRes.data.assignedTo.id) : '')
     } catch {
       toast.error('Failed to load ticket details')
@@ -168,8 +175,17 @@ const TicketsPage = () => {
 
   const handleStatusUpdate = async (status) => {
     if (!selectedTicket) return
+
+    if (status === 'REJECTED' && !rejectReason.trim()) {
+      toast.error('Rejection reason is required')
+      return
+    }
+
     try {
-      await updateTicketStatus(selectedTicket.id, status)
+      await updateTicketStatus(selectedTicket.id, {
+        status,
+        reason: status === 'REJECTED' ? rejectReason.trim() : undefined,
+      })
       toast.success('Status updated')
       await loadTickets(true)
       await loadDetail(selectedTicket.id)
@@ -213,6 +229,8 @@ const TicketsPage = () => {
     }
   }
 
+  const isAttachmentLimitReached = attachments.length >= 3
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -222,7 +240,7 @@ const TicketsPage = () => {
               <h1 className="text-3xl font-semibold tracking-tight text-stone-900">My Tickets</h1>
               <p className="mt-1 text-sm text-stone-500">Create tickets, track status, and collaborate with comments and images.</p>
             </div>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-6">
               <div className="rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-center">
                 <p className="text-[11px] uppercase tracking-wide text-stone-500">Total</p>
                 <p className="text-lg font-semibold text-stone-900">{ticketStats.total}</p>
@@ -242,6 +260,10 @@ const TicketsPage = () => {
               <div className="rounded-xl border border-stone-300 bg-stone-100 px-3 py-2 text-center">
                 <p className="text-[11px] uppercase tracking-wide text-stone-600">Closed</p>
                 <p className="text-lg font-semibold text-stone-700">{ticketStats.closed}</p>
+              </div>
+              <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-center">
+                <p className="text-[11px] uppercase tracking-wide text-red-600">Rejected</p>
+                <p className="text-lg font-semibold text-red-700">{ticketStats.rejected}</p>
               </div>
             </div>
           </div>
@@ -278,18 +300,22 @@ const TicketsPage = () => {
                 accept="image/*"
                 id="create-ticket-file"
                 className="hidden"
+                ref={createFileInputRef}
                 onChange={(e) => {
                   const file = e.target.files?.[0] || null
                   setCreateForm({ ...createForm, file })
                 }}
               />
-              <label
-                htmlFor="create-ticket-file"
-                className="input-field flex cursor-pointer items-center justify-between"
-              >
+              <div className="input-field flex items-center justify-between">
                 <span className="truncate text-stone-500">{createForm.file?.name || 'Choose an image file'}</span>
-                <span className="rounded-md bg-stone-100 px-2 py-1 text-xs font-medium text-stone-700">Browse</span>
-              </label>
+                <button
+                  type="button"
+                  className="cursor-pointer rounded-md bg-stone-100 px-2 py-1 text-xs font-medium text-stone-700"
+                  onClick={() => createFileInputRef.current?.click()}
+                >
+                  Browse
+                </button>
+              </div>
 
               <button type="submit" className="btn-primary" disabled={submitting}>
                 {submitting ? 'Creating...' : 'Create ticket'}
@@ -320,6 +346,7 @@ const TicketsPage = () => {
                 <option value="IN_PROGRESS">In Progress</option>
                 <option value="RESOLVED">Resolved</option>
                 <option value="CLOSED">Closed</option>
+                <option value="REJECTED">Rejected</option>
               </select>
             </div>
 
@@ -394,7 +421,7 @@ const TicketsPage = () => {
                 <div className="space-y-2">
                   <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Update status</p>
                   <div className="flex flex-wrap gap-2">
-                    {['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'].map((s) => (
+                    {['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED', ...(isAdmin ? ['REJECTED'] : [])].map((s) => (
                       <button
                         key={s}
                         className={`rounded-lg border px-3 py-2 text-xs font-medium ${selectedTicket.status === s ? 'border-slate-900 bg-slate-900 text-white' : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-50'}`}
@@ -404,7 +431,24 @@ const TicketsPage = () => {
                       </button>
                     ))}
                   </div>
+                  {isAdmin && (
+                    <div className="space-y-2 pt-1">
+                      <input
+                        className="input-field"
+                        placeholder="Reason (required for REJECTED)"
+                        value={rejectReason}
+                        onChange={(e) => setRejectReason(e.target.value)}
+                      />
+                    </div>
+                  )}
                 </div>
+
+                {selectedTicket.status === 'REJECTED' && selectedTicket.rejectionReason && (
+                  <div className="rounded-xl border border-red-200 bg-red-50 p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-red-700">Rejection reason</p>
+                    <p className="mt-1 text-sm text-red-800">{selectedTicket.rejectionReason}</p>
+                  </div>
+                )}
 
                 {isAdmin && (
                   <div className="space-y-2 rounded-xl border border-stone-200 bg-stone-50 p-3">
@@ -451,35 +495,48 @@ const TicketsPage = () => {
                       accept="image/*"
                       id="detail-upload-file"
                       className="hidden"
+                      ref={detailFileInputRef}
                       onChange={(e) => {
                         const file = e.target.files?.[0] || null
                         setDetailUploadFileName(file?.name || 'No file chosen')
                         handleUpload(file)
                       }}
                     />
-                    <label
-                      htmlFor="detail-upload-file"
-                      className="input-field flex cursor-pointer items-center justify-between"
-                    >
+                    <div className="input-field flex items-center justify-between">
                       <span className="truncate text-stone-500">{detailUploadFileName}</span>
-                      <span className="rounded-md bg-stone-100 px-2 py-1 text-xs font-medium text-stone-700">Browse</span>
-                    </label>
-                    <div className="grid max-h-56 grid-cols-2 gap-2 overflow-y-auto pr-1">
-                      {attachments.length === 0 && <p className="col-span-2 text-sm text-stone-400">No attachments.</p>}
-                      {attachments.map((a) => {
-                        const src = `${API_BASE}/${a.filePath}`.replace(/([^:]\/)\/+/, '$1')
-                        return (
-                          <a href={src} target="_blank" rel="noreferrer" key={a.id} className="block">
-                            <img
-                              src={src}
-                              alt={a.fileName}
-                              className="h-24 w-full rounded-lg border border-stone-200 object-cover"
-                              onError={(e) => { e.currentTarget.style.display = 'none' }}
-                            />
-                            <p className="mt-1 truncate text-[11px] text-stone-500">{a.fileName}</p>
-                          </a>
-                        )
-                      })}
+                      <button
+                        type="button"
+                        className={`rounded-md px-2 py-1 text-xs font-medium ${isAttachmentLimitReached ? 'cursor-not-allowed bg-stone-200 text-stone-500' : 'cursor-pointer bg-stone-100 text-stone-700'}`}
+                        disabled={isAttachmentLimitReached}
+                        onClick={() => detailFileInputRef.current?.click()}
+                      >
+                        Browse
+                      </button>
+                    </div>
+                    {isAttachmentLimitReached && (
+                      <p className="text-xs text-red-600">Maximum 3 attachments reached for this ticket.</p>
+                    )}
+                    <div className="space-y-2">
+                      {attachments.length === 0 && <p className="text-sm text-stone-400">No attachments.</p>}
+
+                      {attachments.length > 0 && (
+                        <div className="max-h-40 space-y-1 overflow-y-auto pr-1">
+                          {attachments.map((a) => {
+                            const src = `${API_BASE}/${a.filePath}`.replace(/([^:]\/)\/+/, '$1')
+                            return (
+                              <a
+                                key={a.id}
+                                href={src}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="block truncate text-sm text-blue-600 hover:text-blue-700 hover:underline"
+                              >
+                                {a.fileName}
+                              </a>
+                            )
+                          })}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

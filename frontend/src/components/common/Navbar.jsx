@@ -3,15 +3,22 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth'
 import NotificationBell from '../notifications/NotificationBell'
 import { getRoleLabel, getRoleBadgeClass, getInitials } from '../../utils/roleUtils'
-import { logout } from '../../api/authApi'
+import { changeMyRole, logout } from '../../api/authApi'
+import { ROLES } from '../../utils/constants'
 import toast from 'react-hot-toast'
 
 const Navbar = () => {
-  const { user, logoutUser, isAdmin } = useAuth()
+  const { user, logoutUser, isAdmin, refreshUser } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [switchingRole, setSwitchingRole] = useState(false)
+  const [avatarLoadFailed, setAvatarLoadFailed] = useState(false)
   const menuRef = useRef(null)
+
+  const roleOptions = Object.values(ROLES).filter(
+    (role) => role !== ROLES.SUPER_ADMIN && role !== ROLES.HOD,
+  )
 
   useEffect(() => {
     const handler = (e) => {
@@ -21,12 +28,41 @@ const Navbar = () => {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
+  useEffect(() => {
+    setAvatarLoadFailed(false)
+  }, [user?.photoUrl])
+
   const handleLogout = async () => {
     const refreshToken = localStorage.getItem('refreshToken')
     try { await logout(refreshToken) } catch { /* silent */ }
     logoutUser()
     navigate('/login')
     toast.success('Signed out successfully')
+  }
+
+  const handleRoleSwitch = async (nextRole) => {
+    if (!user?.role || user.role === nextRole) return
+
+    try {
+      setSwitchingRole(true)
+      await changeMyRole(nextRole)
+      await refreshUser()
+      setMenuOpen(false)
+      toast.success(`Role changed to ${getRoleLabel(nextRole)}`)
+
+      if ([ROLES.ADMIN, ROLES.SUPER_ADMIN].includes(nextRole)) {
+        navigate('/admin/users')
+      } else {
+        navigate('/dashboard')
+      }
+    } catch (err) {
+      const message = err?.response?.data?.message
+        || err?.response?.data?.error
+        || `Failed to switch role${err?.response?.status ? ` (${err.response.status})` : ''}`
+      toast.error(message)
+    } finally {
+      setSwitchingRole(false)
+    }
   }
 
   const navLinks = [
@@ -81,9 +117,13 @@ const Navbar = () => {
                 onClick={() => setMenuOpen(!menuOpen)}
                 className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-slate-800 transition-colors"
               >
-                {user?.photoUrl ? (
-                  <img src={user.photoUrl} alt={user.displayName}
-                    className="w-7 h-7 rounded-full object-cover ring-2 ring-primary-600" />
+                {user?.photoUrl && !avatarLoadFailed ? (
+                  <img
+                    src={user.photoUrl}
+                    alt={user.displayName}
+                    className="w-7 h-7 rounded-full object-cover ring-2 ring-primary-600"
+                    onError={() => setAvatarLoadFailed(true)}
+                  />
                 ) : (
                   <div className="w-7 h-7 rounded-full bg-primary-600 flex items-center justify-center text-white text-xs font-semibold">
                     {getInitials(user?.displayName)}
@@ -120,6 +160,24 @@ const Navbar = () => {
                     </svg>
                     Notification settings
                   </Link>
+                  <div className="px-4 py-3 border-t border-stone-100">
+                    <label htmlFor="role-switch" className="block text-xs font-medium text-stone-500 mb-1">
+                      Switch role
+                    </label>
+                    <select
+                      id="role-switch"
+                      value={user?.role || ''}
+                      disabled={switchingRole}
+                      onChange={(e) => handleRoleSwitch(e.target.value)}
+                      className="w-full rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-60"
+                    >
+                      {roleOptions.map((role) => (
+                        <option key={role} value={role}>
+                          {getRoleLabel(role)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                   <div className="border-t border-stone-100 mt-1">
                     <button onClick={handleLogout}
                       className="flex items-center gap-2.5 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50">

@@ -16,7 +16,7 @@ const QuickAction = ({ to, icon, label, desc, color }) => (
 const DashboardPage = () => {
   const { user, isAdmin } = useAuth()
   const hour = new Date().getHours()
-  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+  const greeting = hour < 5 ? 'Good night' : hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : hour < 22 ? 'Good evening' : 'Good night'
   const firstName = user?.displayName?.split(' ')[0] || 'there'
 
   return (

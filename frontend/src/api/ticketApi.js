@@ -3,7 +3,7 @@ import axiosInstance from './axiosInstance'
 export const createTicket = (data) => axiosInstance.post('/api/tickets', data)
 export const getTickets = () => axiosInstance.get('/api/tickets')
 export const getTicketById = (id) => axiosInstance.get(`/api/tickets/${id}`)
-export const updateTicketStatus = (id, status) => axiosInstance.put(`/api/tickets/${id}/status`, status)
+export const updateTicketStatus = (id, payload) => axiosInstance.put(`/api/tickets/${id}/status`, payload)
 
 export const getTicketComments = (id) => axiosInstance.get(`/api/tickets/${id}/comments`)
 export const addTicketComment = (id, content) => axiosInstance.post(`/api/tickets/${id}/comments`, { content })
