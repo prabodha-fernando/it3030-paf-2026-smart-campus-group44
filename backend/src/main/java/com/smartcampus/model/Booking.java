@@ -23,8 +23,8 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "resource_id", nullable = false)
-    private Long resourceId;
+    @Column(name = "resource_id", nullable = false, unique = true)
+    private String resourceId;
 
     @Column(name = "resource_name", nullable = false)
     private String resourceName;
