@@ -15,8 +15,7 @@ import java.time.LocalTime;
 @Builder
 public class BookingRequestDto {
 
-    @NotNull
-    private Long resourceId;
+    private String resourceId;
 
     @NotBlank
     private String resourceName;
