@@ -18,6 +18,7 @@ const ProfilePage = () => {
   const [prefs, setPrefs] = useState(null)
   const [fullProfile, setFullProfile] = useState(null)
   const [activeTab, setActiveTab] = useState('profile')
+  const [avatarLoadFailed, setAvatarLoadFailed] = useState(false)
 
   const [form, setForm] = useState({
     displayName: user?.displayName || '',
@@ -28,6 +29,10 @@ const ProfilePage = () => {
   useEffect(() => {
     if (user) setForm({ displayName: user.displayName || '', department: user.department || '', phone: user.phone || '' })
   }, [user])
+
+  useEffect(() => {
+    setAvatarLoadFailed(false)
+  }, [user?.photoUrl])
 
   useEffect(() => {
     getMyProfile().then(({ data }) => {
@@ -82,8 +87,13 @@ const ProfilePage = () => {
         {/* Profile header card */}
         <div className="card">
           <div className="flex items-start gap-4">
-            {user?.photoUrl ? (
-              <img src={user.photoUrl} alt="" className="w-16 h-16 rounded-xl object-cover ring-2 ring-primary-100" />
+            {user?.photoUrl && !avatarLoadFailed ? (
+              <img
+                src={user.photoUrl}
+                alt=""
+                className="w-16 h-16 rounded-xl object-cover ring-2 ring-primary-100"
+                onError={() => setAvatarLoadFailed(true)}
+              />
             ) : (
               <div className="w-16 h-16 rounded-xl bg-primary-600 flex items-center justify-center text-white text-xl font-semibold">
                 {getInitials(user?.displayName)}

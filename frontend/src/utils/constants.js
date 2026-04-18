@@ -1,5 +1,8 @@
 export const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
-export const WS_URL   = import.meta.env.VITE_WS_URL       || 'http://localhost:8080/ws'
+const rawWsUrl = import.meta.env.VITE_WS_URL || 'http://localhost:8080/ws'
+export const WS_URL = rawWsUrl
+  .replace(/^ws:/i, 'http:')
+  .replace(/^wss:/i, 'https:')
 
 export const ROLES = {
   SUPER_ADMIN:      'SUPER_ADMIN',

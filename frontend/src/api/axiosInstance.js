@@ -1,5 +1,12 @@
 import axios from 'axios'
 import { API_BASE } from '../utils/constants'
+import { emitAuthLogout } from '../utils/authEvents'
+
+const isUnexpectedHtmlApiResponse = (response) => {
+  const contentType = response?.headers?.['content-type'] || ''
+  const url = response?.config?.url || ''
+  return url.startsWith('/api') && contentType.includes('text/html')
+}
 
 const axiosInstance = axios.create({
   // Fallback to empty string if API_BASE bypasses the Vite proxy
@@ -14,7 +21,14 @@ axiosInstance.interceptors.request.use((config) => {
 })
 
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (isUnexpectedHtmlApiResponse(response)) {
+      localStorage.clear()
+      emitAuthLogout()
+      return Promise.reject(new Error('Unauthorized HTML response for API request'))
+    }
+    return response
+  },
   async (error) => {
     const original = error.config
     if (error.response?.status === 401 && !original._retry) {
@@ -22,7 +36,7 @@ axiosInstance.interceptors.response.use(
       const refreshToken = localStorage.getItem('refreshToken')
       if (!refreshToken) {
         localStorage.clear()
-        window.location.href = '/login'
+        emitAuthLogout()
         return Promise.reject(error)
       }
       try {
@@ -33,7 +47,7 @@ axiosInstance.interceptors.response.use(
         return axiosInstance(original)
       } catch {
         localStorage.clear()
-        window.location.href = '/login'
+        emitAuthLogout()
         return Promise.reject(error)
       }
     }

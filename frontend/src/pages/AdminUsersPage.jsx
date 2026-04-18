@@ -5,10 +5,12 @@ import { getRoleBadgeClass, getRoleLabel, getInitials } from '../utils/roleUtils
 import { ROLES, ROLE_LABELS } from '../utils/constants'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import toast from 'react-hot-toast'
+import useAuth from '../hooks/useAuth'
 
 const TABS = ['Users', 'Role requests']
 
 const AdminUsersPage = () => {
+  const { user: currentUser } = useAuth()
   const [activeTab,    setActiveTab]    = useState('Users')
   const [users,        setUsers]        = useState([])
   const [requests,     setRequests]     = useState([])
@@ -36,6 +38,11 @@ const AdminUsersPage = () => {
   useEffect(() => { loadUsers(); loadRequests() }, [roleFilter])
 
   const handleChangeRole = async (userId, role) => {
+    if (userId === currentUser?.id) {
+      toast.error('You cannot change your own role')
+      return
+    }
+
     try {
       await changeUserRole(userId, role)
       await loadUsers()
@@ -156,6 +163,8 @@ const AdminUsersPage = () => {
                           <select
                             value={u.role}
                             onChange={(e) => handleChangeRole(u.id, e.target.value)}
+                            disabled={u.id === currentUser?.id}
+                            title={u.id === currentUser?.id ? 'You cannot change your own role' : ''}
                             className="text-xs border border-stone-200 rounded-lg px-2 py-1.5 text-stone-700 bg-white focus:ring-1 focus:ring-primary-500"
                           >
                             {Object.entries(ROLE_LABELS).map(([k, v]) => (
