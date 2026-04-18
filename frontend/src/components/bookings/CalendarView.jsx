@@ -39,7 +39,9 @@ const CalendarView = ({ statusFilter, onEventClick }) => {
       }
 
       const { data } = await getCalendarEvents(params)
-      const calendarEvents = data.content.map(event => ({
+      // Handle both paginated and non-paginated responses
+      const eventsData = data.content || data
+      const calendarEvents = eventsData.map(event => ({
         id: event.id,
         title: event.title,
         start: new Date(event.start),
@@ -48,6 +50,7 @@ const CalendarView = ({ statusFilter, onEventClick }) => {
       }))
       setEvents(calendarEvents)
     } catch (error) {
+      console.error('Calendar API error:', error)
       toast.error('Unable to load calendar events')
     } finally {
       setLoading(false)
@@ -56,10 +59,10 @@ const CalendarView = ({ statusFilter, onEventClick }) => {
 
   // Load events when component mounts or filters change
   useEffect(() => {
-    const start = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
-    const end = new Date(currentDate.getFullYear(), currentDate.getMonth() + 2, 0)
+    const start = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+    const end = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
     loadEvents(start, end)
-  }, [statusFilter, currentDate])
+  }, [statusFilter])
 
   // Custom event component for better styling
   const EventComponent = ({ event }) => {
@@ -68,6 +71,23 @@ const CalendarView = ({ statusFilter, onEventClick }) => {
       <div className="text-xs p-1 truncate">
         <div className="font-medium">{booking.resourceName}</div>
         <div className="text-stone-600">{booking.purpose}</div>
+      </div>
+    )
+  }
+
+  // Custom toolbar with only navigation buttons (no view toggle buttons)
+  const CustomToolbar = ({ label, onNavigate }) => {
+    return (
+      <div className="rbc-toolbar">
+        <div className="rbc-btn-group">
+          <button type="button" onClick={() => onNavigate('PREV')}>Previous</button>
+          <button type="button" onClick={() => onNavigate('TODAY')}>Today</button>
+          <button type="button" onClick={() => onNavigate('NEXT')}>Next</button>
+        </div>
+        <span className="rbc-toolbar-label">{label}</span>
+        <div className="rbc-btn-group">
+          {/* View toggle buttons removed */}
+        </div>
       </div>
     )
   }
@@ -106,8 +126,12 @@ const CalendarView = ({ statusFilter, onEventClick }) => {
   }
 
   // Handle calendar navigation
-  const handleNavigate = (date) => {
+  const handleNavigate = (date, view) => {
     setCurrentDate(date)
+    // Load events for the new date range
+    const start = new Date(date.getFullYear(), date.getMonth(), 1)
+    const end = new Date(date.getFullYear(), date.getMonth() + 1, 0)
+    loadEvents(start, end)
   }
 
   // Handle event click
@@ -147,32 +171,37 @@ const CalendarView = ({ statusFilter, onEventClick }) => {
   }
 
   return (
-    <div className="h-[600px] bg-white rounded-lg border border-stone-200">
+    <div className="h-[600px] bg-white rounded-lg border border-stone-200 relative">
+      {/* Subtle loading indicator in header */}
+      {loading && (
+        <div className="absolute top-2 right-2 z-10 bg-white rounded-full px-3 py-1 shadow-sm border border-stone-200">
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+            <span className="text-xs text-stone-600">Loading...</span>
+          </div>
+        </div>
+      )}
       <Calendar
         localizer={localizer}
         events={events}
         startAccessor="start"
         endAccessor="end"
+        date={currentDate}
+        onNavigate={handleNavigate}
         style={{ height: '100%' }}
         onSelectEvent={handleEventClick}
         eventPropGetter={eventStyleGetter}
         components={{
           event: EventComponent,
+          toolbar: CustomToolbar, // Use custom toolbar with only navigation buttons
         }}
-        onNavigate={handleNavigate}
         onRangeChange={handleRangeChange}
         messages={messages}
-        views={['month', 'week', 'day', 'agenda']}
+        views={['month']} // Only allow month view
         defaultView="month"
         popup
         selectable
       />
-      {loading && (
-        <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-lg">
-          <div className="text-stone-500">Loading calendar...</div>
-        </div>
-      )}
-
       <BookingDetailsModal
         booking={selectedBooking}
         isOpen={modalOpen}
