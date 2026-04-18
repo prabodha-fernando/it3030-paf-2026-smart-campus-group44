@@ -1,5 +1,6 @@
 package com.smartcampus.controller;
 
+import com.smartcampus.dto.TicketStatusUpdateRequest;
 import com.smartcampus.model.Ticket;
 import com.smartcampus.model.TicketAttachment;
 import com.smartcampus.model.TicketComment;
@@ -42,8 +43,8 @@ public class TicketController {
     @PutMapping("/{id}/status")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> updateStatus(@PathVariable Long id,
-                                          @RequestBody String status) {
-        return ResponseEntity.ok(ticketService.updateStatus(id, status));
+                                          @RequestBody TicketStatusUpdateRequest request) {
+        return ResponseEntity.ok(ticketService.updateStatus(id, request));
     }
 
     @PostMapping("/{id}/comments")

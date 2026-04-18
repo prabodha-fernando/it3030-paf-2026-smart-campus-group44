@@ -45,6 +45,9 @@ public class Ticket {
     @Column(name = "resolution_notes", columnDefinition = "TEXT")
     private String resolutionNotes;
 
+    @Column(name = "rejection_reason", columnDefinition = "TEXT")
+    private String rejectionReason;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

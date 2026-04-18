@@ -1,5 +1,6 @@
 package com.smartcampus.service;
 
+import com.smartcampus.dto.TicketStatusUpdateRequest;
 import com.smartcampus.enums.TicketStatus;
 import com.smartcampus.enums.Role;
 import com.smartcampus.event.CommentAddedEvent;
@@ -71,9 +72,25 @@ public class TicketService {
     }
 
     @Transactional
-    public Ticket updateStatus(Long id, String rawStatus) {
+    public Ticket updateStatus(Long id, TicketStatusUpdateRequest request) {
+        if (request == null) {
+            throw new ConflictException("Status payload is required");
+        }
+
         Ticket ticket = getTicketById(id);
-        TicketStatus newStatus = parseStatus(rawStatus);
+        TicketStatus newStatus = parseStatus(request.getStatus());
+        User currentUser = authService.getCurrentUser();
+
+        validateStatusUpdatePermission(ticket, currentUser, newStatus);
+
+        if (newStatus == TicketStatus.REJECTED) {
+            if (request.getReason() == null || request.getReason().isBlank()) {
+                throw new ConflictException("Rejection reason is required");
+            }
+            ticket.setRejectionReason(request.getReason().trim());
+        } else {
+            ticket.setRejectionReason(null);
+        }
 
         if (ticket.getStatus() == newStatus) {
             throw new ConflictException("Ticket already has status " + newStatus);
@@ -122,6 +139,10 @@ public class TicketService {
         }
 
         Ticket ticket = getTicketById(ticketId);
+        long attachmentCount = ticketAttachmentRepository.countByTicketId(ticketId);
+        if (attachmentCount >= 3) {
+            throw new ConflictException("Maximum 3 attachments are allowed per ticket");
+        }
 
         try {
             Files.createDirectories(UPLOAD_ROOT);
@@ -172,6 +193,20 @@ public class TicketService {
 
         ticket.setAssignedTo(assignee);
         return ticketRepository.save(ticket);
+    }
+
+    private void validateStatusUpdatePermission(Ticket ticket, User currentUser, TicketStatus newStatus) {
+        boolean isAdmin = currentUser.getRole() == Role.ADMIN || currentUser.getRole() == Role.SUPER_ADMIN;
+        boolean isAssignedStaff = ticket.getAssignedTo() != null
+                && ticket.getAssignedTo().getId().equals(currentUser.getId());
+
+        if (!isAdmin && !isAssignedStaff) {
+            throw new ConflictException("Only assigned staff or admin can update ticket status");
+        }
+
+        if (newStatus == TicketStatus.REJECTED && !isAdmin) {
+            throw new ConflictException("Only admin can reject tickets");
+        }
     }
 
     private TicketStatus parseStatus(String rawStatus) {
