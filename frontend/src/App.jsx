@@ -6,13 +6,18 @@ import NotificationDrawer from './components/notifications/NotificationDrawer'
 import useWebSocket from './hooks/useWebSocket'
 import useAuth from './hooks/useAuth'
 
-import LoginPage         from './pages/LoginPage'
-import OAuthCallbackPage from './pages/OAuthCallbackPage'
-import OnboardingPage    from './pages/OnboardingPage'
-import DashboardPage     from './pages/DashboardPage'
-import ProfilePage       from './pages/ProfilePage'
-import AdminUsersPage    from './pages/AdminUsersPage'
-import ResourcesPage     from './pages/ResourcesPage'
+import LoginPage            from './pages/LoginPage'
+import OAuthCallbackPage    from './pages/OAuthCallbackPage'
+import OnboardingPage       from './pages/OnboardingPage'
+import DashboardPage        from './pages/DashboardPage'
+import ProfilePage          from './pages/ProfilePage'
+import AdminUsersPage       from './pages/AdminUsersPage'
+import ResourcesPage        from './pages/ResourcesPage'
+import ResourceDetailPage   from './pages/ResourceDetailPage'
+import AdminResourcesPage   from './pages/AdminResourcesPage'
+import ResourceCategoryPage from './pages/ResourceCategoryPage'
+import CampusMapPage        from './pages/CampusMapPage'
+import ContactFacilitiesPage from './pages/ContactFacilitiesPage'
 
 const AppContent = () => {
   const { user } = useAuth()
@@ -26,11 +31,18 @@ const AppContent = () => {
         <Route path="/auth/callback" element={<OAuthCallbackPage />} />
 
         <Route element={<PrivateRoute />}>
-          <Route path="/onboarding" element={<OnboardingPage />} />
-          <Route path="/dashboard"  element={<DashboardPage />} />
-          <Route path="/resources"  element={<ResourcesPage />} />
-          <Route path="/profile"    element={<ProfilePage />} />
-          <Route path="/profile/notifications" element={<ProfilePage />} />
+          <Route path="/onboarding"            element={<OnboardingPage />} />
+          <Route path="/dashboard"             element={<DashboardPage />} />
+          <Route path="/resources"             element={<ResourcesPage />} />
+          <Route path="/resources/manage"        element={<AdminResourcesPage />} />
+          <Route path="/resources/map"           element={<CampusMapPage />} />
+          <Route path="/resources/halls"         element={<ResourceCategoryPage category="halls" />} />
+          <Route path="/resources/labs"          element={<ResourceCategoryPage category="labs" />} />
+          <Route path="/resources/equipment"     element={<ResourceCategoryPage category="equipment" />} />
+          <Route path="/resources/contact"       element={<ContactFacilitiesPage />} />
+          <Route path="/resources/:id"            element={<ResourceDetailPage />} />
+          <Route path="/profile"                  element={<ProfilePage />} />
+          <Route path="/profile/notifications"    element={<ProfilePage />} />
         </Route>
 
         <Route element={<PrivateRoute allowedRoles={['ADMIN', 'SUPER_ADMIN']} />}>
