@@ -6,7 +6,7 @@ import NotificationDrawer from './components/notifications/NotificationDrawer'
 import LoadingSpinner from './components/common/LoadingSpinner'
 import useWebSocket from './hooks/useWebSocket'
 import useAuth from './hooks/useAuth'
-
+import HomePage from './pages/HomePage'
 import LoginPage         from './pages/LoginPage'
 import OAuthCallbackPage from './pages/OAuthCallbackPage'
 import OnboardingPage    from './pages/OnboardingPage'
@@ -27,10 +27,15 @@ const AppContent = () => {
     <>
       <NotificationDrawer />
       <Routes>
+<<<<<<< HEAD
         <Route
           path="/login"
           element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />}
         />
+=======
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+>>>>>>> origin/feature/module-d-auth-notifications
         <Route path="/auth/callback" element={<OAuthCallbackPage />} />
 
         <Route element={<PrivateRoute />}>
@@ -47,8 +52,9 @@ const AppContent = () => {
           <Route path="/admin/users" element={<AdminUsersPage />} />
         </Route>
 
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        {/*<Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />*/}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
   )
