@@ -1,0 +1,29 @@
+{
+  "properties": [
+    {
+      "name": "app.frontend-url",
+      "type": "java.lang.String",
+      "description": "Frontend URL used for CORS and OAuth redirects."
+    },
+    {
+      "name": "app.allowed-email-domains",
+      "type": "java.util.List<java.lang.String>",
+      "description": "Allowed email domain suffixes for OAuth login."
+    },
+    {
+      "name": "app.jwt.secret",
+      "type": "java.lang.String",
+      "description": "JWT signing secret key."
+    },
+    {
+      "name": "app.jwt.expiration-ms",
+      "type": "java.lang.Long",
+      "description": "Access token expiration in milliseconds."
+    },
+    {
+      "name": "app.jwt.refresh-expiration-ms",
+      "type": "java.lang.Long",
+      "description": "Refresh token expiration in milliseconds."
+    }
+  ]
+}

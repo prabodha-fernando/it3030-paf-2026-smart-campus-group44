@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './context/AuthContext'
 import PrivateRoute from './components/auth/PrivateRoute'
 import NotificationDrawer from './components/notifications/NotificationDrawer'
+import LoadingSpinner from './components/common/LoadingSpinner'
 import useWebSocket from './hooks/useWebSocket'
 import useAuth from './hooks/useAuth'
 import HomePage from './pages/HomePage'
@@ -10,12 +11,17 @@ import LoginPage         from './pages/LoginPage'
 import OAuthCallbackPage from './pages/OAuthCallbackPage'
 import OnboardingPage    from './pages/OnboardingPage'
 import DashboardPage     from './pages/DashboardPage'
+import BookingsPage      from './pages/BookingsPage'
 import ProfilePage       from './pages/ProfilePage'
 import AdminUsersPage    from './pages/AdminUsersPage'
+import ResourcesPage     from './pages/ResourcesPage'
+import TicketsPage       from './pages/TicketsPage'
 
 const AppContent = () => {
-  const { user } = useAuth()
+  const { user, loading, isAuthenticated } = useAuth()
   useWebSocket(user?.email)
+
+  if (loading) return <LoadingSpinner center />
 
   return (
     <>
@@ -28,6 +34,9 @@ const AppContent = () => {
         <Route element={<PrivateRoute />}>
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/dashboard"  element={<DashboardPage />} />
+          <Route path="/bookings"   element={<BookingsPage />} />
+          <Route path="/resources"  element={<ResourcesPage />} />
+          <Route path="/tickets"    element={<TicketsPage />} />
           <Route path="/profile"    element={<ProfilePage />} />
           <Route path="/profile/notifications" element={<ProfilePage />} />
         </Route>

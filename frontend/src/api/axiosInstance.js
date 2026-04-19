@@ -1,38 +1,53 @@
 import axios from 'axios'
 import { API_BASE } from '../utils/constants'
+import { emitAuthLogout } from '../utils/authEvents'
+import { clearAuthTokens, getAccessToken, getRefreshToken, setAuthTokens } from '../utils/authStorage'
+
+const isUnexpectedHtmlApiResponse = (response) => {
+  const contentType = response?.headers?.['content-type'] || ''
+  const url = response?.config?.url || ''
+  return url.startsWith('/api') && contentType.includes('text/html')
+}
 
 const axiosInstance = axios.create({
-  baseURL: API_BASE,
+  // Fallback to empty string if API_BASE bypasses the Vite proxy
+  baseURL: API_BASE || '', 
   headers: { 'Content-Type': 'application/json' },
 })
 
 axiosInstance.interceptors.request.use((config) => {
-  const token = localStorage.getItem('accessToken')
+  const token = getAccessToken()
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
 
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (isUnexpectedHtmlApiResponse(response)) {
+      clearAuthTokens()
+      emitAuthLogout()
+      return Promise.reject(new Error('Unauthorized HTML response for API request'))
+    }
+    return response
+  },
   async (error) => {
     const original = error.config
     if (error.response?.status === 401 && !original._retry) {
       original._retry = true
-      const refreshToken = localStorage.getItem('refreshToken')
+      const refreshToken = getRefreshToken()
       if (!refreshToken) {
-        localStorage.clear()
-        window.location.href = '/login'
+        clearAuthTokens()
+        emitAuthLogout()
         return Promise.reject(error)
       }
       try {
         const { data } = await axios.post(`${API_BASE}/api/v1/auth/refresh`, { refreshToken })
-        localStorage.setItem('accessToken',  data.accessToken)
-        localStorage.setItem('refreshToken', data.refreshToken)
+        setAuthTokens(data.accessToken, data.refreshToken)
         original.headers.Authorization = `Bearer ${data.accessToken}`
         return axiosInstance(original)
       } catch {
-        localStorage.clear()
-        window.location.href = '/login'
+        clearAuthTokens()
+        emitAuthLogout()
         return Promise.reject(error)
       }
     }

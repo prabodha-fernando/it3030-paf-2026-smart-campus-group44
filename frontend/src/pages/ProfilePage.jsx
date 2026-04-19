@@ -4,6 +4,7 @@ import useAuth from '../hooks/useAuth'
 import { getMyProfile, updateMyProfile, getRoleRequests, cancelRoleRequest } from '../api/authApi'
 import { getPreferences, updatePreferences } from '../api/notificationApi'
 import Layout from '../components/common/Layout'
+import PageTitle from '../components/common/PageTitle'
 import RoleRequestModal from '../components/auth/RoleRequestModal'
 import { getRoleBadgeClass, getRoleLabel, getInitials } from '../utils/roleUtils'
 import { ROLE_LABELS } from '../utils/constants'
@@ -19,7 +20,9 @@ const ProfilePage = () => {
   const [fullProfile, setFullProfile] = useState(null)
   const [activeTab, setActiveTab] = useState('profile')
   const [errors, setErrors] = useState({})
+  const [avatarLoadFailed, setAvatarLoadFailed] = useState(false)
 
+  // ...existing code...
   const [form, setForm] = useState({
     displayName: user?.displayName || '',
     department:  user?.department  || '',
@@ -29,6 +32,10 @@ const ProfilePage = () => {
   useEffect(() => {
     if (user) setForm({ displayName: user.displayName || '', department: user.department || '', phone: user.phone || '' })
   }, [user])
+
+  useEffect(() => {
+    setAvatarLoadFailed(false)
+  }, [user?.photoUrl])
 
   useEffect(() => {
     getMyProfile().then(({ data }) => {
@@ -105,13 +112,19 @@ const ProfilePage = () => {
 
   return (
     <Layout>
+      <PageTitle title="My Profile" />
       <div className="max-w-2xl mx-auto space-y-5">
 
         {/* Profile header card */}
         <div className="card">
           <div className="flex items-start gap-4">
-            {user?.photoUrl ? (
-              <img src={user.photoUrl} alt="" className="w-16 h-16 rounded-xl object-cover ring-2 ring-primary-100" />
+            {user?.photoUrl && !avatarLoadFailed ? (
+              <img
+                src={user.photoUrl}
+                alt=""
+                className="w-16 h-16 rounded-xl object-cover ring-2 ring-primary-100"
+                onError={() => setAvatarLoadFailed(true)}
+              />
             ) : (
               <div className="w-16 h-16 rounded-xl bg-primary-600 flex items-center justify-center text-white text-xl font-semibold">
                 {getInitials(user?.displayName)}

@@ -11,6 +11,7 @@ import com.smartcampus.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,11 +57,36 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "User not found with id: " + userId));
+
+        User currentUser = authService.getCurrentUser();
+        if (currentUser.getId().equals(userId)
+                && !user.getRole().equals(request.getRole())) {
+            throw new AccessDeniedException("You cannot change your own role");
+        }
+
         Role oldRole = user.getRole();
         user.setRole(request.getRole());
         userRepository.save(user);
         eventPublisher.publishEvent(
                 new RoleChangedEvent(this, user.getId(), request.getRole(), oldRole));
+        return toDto(user);
+    }
+
+    @Transactional
+    public UserDto changeMyRole(ChangeRoleRequest request) {
+        User user = authService.getCurrentUser();
+        if (request.getRole() == Role.SUPER_ADMIN || request.getRole() == Role.HOD) {
+            throw new AccessDeniedException("You cannot switch to this role");
+        }
+        Role oldRole = user.getRole();
+
+        if (!oldRole.equals(request.getRole())) {
+            user.setRole(request.getRole());
+            userRepository.save(user);
+            eventPublisher.publishEvent(
+                    new RoleChangedEvent(this, user.getId(), request.getRole(), oldRole));
+        }
+
         return toDto(user);
     }
 

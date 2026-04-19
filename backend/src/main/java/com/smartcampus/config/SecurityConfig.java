@@ -10,7 +10,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -43,11 +45,27 @@ public class SecurityConfig {
                     ).permitAll()
                     .requestMatchers("/oauth2/**", "/login/**").permitAll()
                     .requestMatchers("/ws/**").permitAll()
+                    .requestMatchers("/uploads/**").permitAll()
                     .requestMatchers("/error").permitAll()
                     .anyRequest().authenticated()
             )
+            .exceptionHandling(ex -> ex
+                    .defaultAuthenticationEntryPointFor(
+                            new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
+                            request -> request.getServletPath().startsWith("/api/")
+                    )
+            )
             .oauth2Login(oauth2 -> oauth2
                     .successHandler(oAuth2SuccessHandler))
+            .exceptionHandling(e -> e
+                .authenticationEntryPoint((request, response, authException) -> {
+                    if (request.getRequestURI().startsWith("/api/")) {
+                        response.sendError(401, "Unauthorized");
+                    } else {
+                        response.sendRedirect("/oauth2/authorization/google");
+                    }
+                })
+            )
             .addFilterBefore(jwtAuthFilter,
                     UsernamePasswordAuthenticationFilter.class);
 

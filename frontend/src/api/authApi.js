@@ -8,6 +8,7 @@ export const getMyProfile    = ()        => axiosInstance.get('/api/v1/users/me'
 export const updateMyProfile = (data)    => axiosInstance.put('/api/v1/users/me', data)
 export const getAllUsers      = (params) => axiosInstance.get('/api/v1/users', { params })
 export const changeUserRole   = (id, role) => axiosInstance.patch(`/api/v1/users/${id}/role`, { role })
+export const changeMyRole     = (role) => axiosInstance.patch('/api/v1/users/me/role', { role })
 
 export const submitRoleRequest  = (data)       => axiosInstance.post('/api/v1/role-requests', data)
 export const getRoleRequests    = (params)     => axiosInstance.get('/api/v1/role-requests', { params })

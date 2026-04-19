@@ -5,12 +5,15 @@ import { getRoleBadgeClass, getRoleLabel, getInitials } from '../utils/roleUtils
 import { ROLES, ROLE_LABELS } from '../utils/constants'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import toast from 'react-hot-toast'
+import useAuth from '../hooks/useAuth'
 
 const TABS = ['Users', 'Role requests']
 
 const AdminUsersPage = () => {
+  const { user: currentUser } = useAuth()
   const [activeTab,    setActiveTab]    = useState('Users')
   const [users,        setUsers]        = useState([])
+  const [avatarLoadFailed, setAvatarLoadFailed] = useState({})
   const [requests,     setRequests]     = useState([])
   const [loading,      setLoading]      = useState(true)
   const [searchQuery,  setSearchQuery]  = useState('')
@@ -35,7 +38,16 @@ const AdminUsersPage = () => {
 
   useEffect(() => { loadUsers(); loadRequests() }, [roleFilter])
 
+  useEffect(() => {
+    setAvatarLoadFailed({})
+  }, [users])
+
   const handleChangeRole = async (userId, role) => {
+    if (userId === currentUser?.id) {
+      toast.error('You cannot change your own role')
+      return
+    }
+
     try {
       await changeUserRole(userId, role)
       await loadUsers()
@@ -132,8 +144,13 @@ const AdminUsersPage = () => {
                       <tr key={u.id} className="hover:bg-stone-50">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
-                            {u.photoUrl ? (
-                              <img src={u.photoUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
+                            {u.photoUrl && !avatarLoadFailed[u.id] ? (
+                              <img
+                                src={u.photoUrl}
+                                alt=""
+                                className="w-8 h-8 rounded-full object-cover"
+                                onError={() => setAvatarLoadFailed((prev) => ({ ...prev, [u.id]: true }))}
+                              />
                             ) : (
                               <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-xs font-semibold">
                                 {getInitials(u.displayName)}
@@ -156,6 +173,8 @@ const AdminUsersPage = () => {
                           <select
                             value={u.role}
                             onChange={(e) => handleChangeRole(u.id, e.target.value)}
+                            disabled={u.id === currentUser?.id}
+                            title={u.id === currentUser?.id ? 'You cannot change your own role' : ''}
                             className="text-xs border border-stone-200 rounded-lg px-2 py-1.5 text-stone-700 bg-white focus:ring-1 focus:ring-primary-500"
                           >
                             {Object.entries(ROLE_LABELS).map(([k, v]) => (

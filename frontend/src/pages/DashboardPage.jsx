@@ -1,4 +1,5 @@
 import Layout from '../components/common/Layout'
+import PageTitle from '../components/common/PageTitle'
 import useAuth from '../hooks/useAuth'
 import useDashboardStats from '../hooks/useDashboardStats'
 import { Link } from 'react-router-dom'
@@ -17,16 +18,20 @@ const QuickAction = ({ to, icon, label, desc, color }) => (
 const DashboardPage = () => {
   const { user, isAdmin } = useAuth()
   const { stats, loading: statsLoading, error: statsError } = useDashboardStats()
+  const hour = new Date().getHours()
+  const greeting = hour < 5 ? 'Good night' : hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : hour < 22 ? 'Good evening' : 'Good night'
+  const firstName = user?.displayName?.split(' ')[0] || 'there'
 
   return (
     <Layout>
+      <PageTitle title="Dashboard" />
       <div className="space-y-6">
 
         {/* Welcome */}
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-xl font-semibold text-stone-900">
-              Good morning, {user?.displayName?.split(' ')[0]} 👋
+              {greeting}, {firstName} 👋
             </h1>
             <p className="text-sm text-stone-500 mt-0.5">Here's what's happening on campus today.</p>
           </div>
