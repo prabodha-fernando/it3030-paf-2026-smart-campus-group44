@@ -8,7 +8,7 @@ const InputField = ({ label, icon, error, children }) => (
     </label>
     {children}
     {error && (
-      <p className="mt-1.5 flex items-center gap-1 text-xs text-red-400 font-medium">
+      <p className="mt-1.5 flex items-center gap-1 text-xs text-red-400 font-medium animate-pulse">
         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
@@ -36,13 +36,14 @@ const ResourceModal = ({ isOpen, onClose, onSubmit, isEditing, resource }) => {
     capacity: 1,
     location: '',
     status: 'ACTIVE',
-    availabilityStart: '08:00:00',
-    availabilityEnd: '18:00:00',
+    availabilityStart: '08:00', // Removed seconds for better UX
+    availabilityEnd: '18:00',   // Removed seconds for better UX
     description: ''
   }
 
   const [formData, setFormData] = useState(defaultFormState)
   const [errors, setErrors] = useState({})
+  const [isSubmitting, setIsSubmitting] = useState(false) // Added UX loading state
 
   useEffect(() => {
     if (isOpen) {
@@ -52,11 +53,13 @@ const ResourceModal = ({ isOpen, onClose, onSubmit, isEditing, resource }) => {
         capacity: resource.capacity || 1,
         location: resource.location || '',
         status: resource.status || 'ACTIVE',
-        availabilityStart: resource.availabilityStart || '08:00:00',
-        availabilityEnd: resource.availabilityEnd || '18:00:00',
+        // Strip seconds if they exist from the database (e.g. 08:00:00 -> 08:00)
+        availabilityStart: resource.availabilityStart ? resource.availabilityStart.substring(0, 5) : '08:00',
+        availabilityEnd: resource.availabilityEnd ? resource.availabilityEnd.substring(0, 5) : '18:00',
         description: resource.description || ''
       } : defaultFormState)
       setErrors({})
+      setIsSubmitting(false)
     }
   }, [isOpen, resource])
 
@@ -71,23 +74,43 @@ const ResourceModal = ({ isOpen, onClose, onSubmit, isEditing, resource }) => {
     return errs
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const validationErrors = validate()
-    if (Object.keys(validationErrors).length > 0) { setErrors(validationErrors); return }
-    onSubmit(formData)
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      // We append :00 back to the time strings so Spring Boot LocalTime doesn't throw a parsing error
+      const formattedData = {
+        ...formData,
+        availabilityStart: `${formData.availabilityStart}:00`,
+        availabilityEnd: `${formData.availabilityEnd}:00`
+      }
+      await onSubmit(formattedData)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }))
+    // Clear the specific error the moment the user starts typing to fix the field
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }))
+    }
   }
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+      onClick={(e) => { if (e.target === e.currentTarget && !isSubmitting) onClose() }}
     >
       <div className="bg-slate-900 rounded-2xl w-full max-w-2xl border border-slate-800/80 shadow-2xl shadow-black/50 flex flex-col max-h-[92vh]">
 
@@ -114,7 +137,8 @@ const ResourceModal = ({ isOpen, onClose, onSubmit, isEditing, resource }) => {
           </div>
           <button
             onClick={onClose}
-            className="ml-auto p-2 text-slate-500 hover:text-white hover:bg-slate-800 rounded-xl transition-all"
+            disabled={isSubmitting}
+            className="ml-auto p-2 text-slate-500 hover:text-white hover:bg-slate-800 rounded-xl transition-all disabled:opacity-50"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -142,6 +166,7 @@ const ResourceModal = ({ isOpen, onClose, onSubmit, isEditing, resource }) => {
                   onChange={handleChange}
                   placeholder="e.g. Conference Room A"
                   className={inputClass(errors.name)}
+                  disabled={isSubmitting}
                 />
               </InputField>
 
@@ -157,23 +182,7 @@ const ResourceModal = ({ isOpen, onClose, onSubmit, isEditing, resource }) => {
                   onChange={handleChange}
                   placeholder="e.g. Room, Lab, Projector"
                   className={inputClass(errors.type)}
-                />
-              </InputField>
-            </div>
-
-            {/* Description */}
-            <div className="mt-4">
-              <InputField
-                label="Description"
-                icon={<svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h8" /></svg>}
-              >
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  rows="2"
-                  placeholder="Add any extra details about this resource..."
-                  className={`${inputClass(false)} resize-none`}
+                  disabled={isSubmitting}
                 />
               </InputField>
             </div>
@@ -196,6 +205,7 @@ const ResourceModal = ({ isOpen, onClose, onSubmit, isEditing, resource }) => {
                   onChange={handleChange}
                   placeholder="e.g. Block A, Floor 2"
                   className={inputClass(errors.location)}
+                  disabled={isSubmitting}
                 />
               </InputField>
 
@@ -211,6 +221,7 @@ const ResourceModal = ({ isOpen, onClose, onSubmit, isEditing, resource }) => {
                   onChange={handleChange}
                   min="1"
                   className={inputClass(errors.capacity)}
+                  disabled={isSubmitting}
                 />
               </InputField>
             </div>
@@ -228,10 +239,10 @@ const ResourceModal = ({ isOpen, onClose, onSubmit, isEditing, resource }) => {
                 <input
                   type="time"
                   name="availabilityStart"
-                  step="1"
                   value={formData.availabilityStart}
                   onChange={handleChange}
-                  className={`${inputClass(false)} [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:opacity-50`}
+                  disabled={isSubmitting}
+                  className={`${inputClass(false)} [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:opacity-50 cursor-pointer`}
                 />
               </InputField>
 
@@ -242,10 +253,10 @@ const ResourceModal = ({ isOpen, onClose, onSubmit, isEditing, resource }) => {
                 <input
                   type="time"
                   name="availabilityEnd"
-                  step="1"
                   value={formData.availabilityEnd}
                   onChange={handleChange}
-                  className={`${inputClass(false)} [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:opacity-50`}
+                  disabled={isSubmitting}
+                  className={`${inputClass(false)} [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:opacity-50 cursor-pointer`}
                 />
               </InputField>
             </div>
@@ -259,24 +270,24 @@ const ResourceModal = ({ isOpen, onClose, onSubmit, isEditing, resource }) => {
                 <div className="flex gap-2">
                   <button
                     type="button"
+                    disabled={isSubmitting}
                     onClick={() => setFormData(prev => ({ ...prev, status: 'ACTIVE' }))}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
-                      formData.status === 'ACTIVE'
-                        ? 'bg-primary-600/20 border-primary-500/50 text-primary-400 ring-1 ring-primary-500/30'
-                        : 'bg-slate-800/60 border-slate-700/80 text-slate-500 hover:border-slate-600 hover:text-slate-400'
-                    }`}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border transition-all ${formData.status === 'ACTIVE'
+                      ? 'bg-primary-600/20 border-primary-500/50 text-primary-400 ring-1 ring-primary-500/30'
+                      : 'bg-slate-800/60 border-slate-700/80 text-slate-500 hover:border-slate-600 hover:text-slate-400'
+                      } disabled:opacity-50`}
                   >
                     <span className={`w-2 h-2 rounded-full ${formData.status === 'ACTIVE' ? 'bg-primary-500' : 'bg-slate-600'}`} />
                     Active
                   </button>
                   <button
                     type="button"
+                    disabled={isSubmitting}
                     onClick={() => setFormData(prev => ({ ...prev, status: 'OUT_OF_SERVICE' }))}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
-                      formData.status === 'OUT_OF_SERVICE'
-                        ? 'bg-red-600/20 border-red-500/50 text-red-400 ring-1 ring-red-500/30'
-                        : 'bg-slate-800/60 border-slate-700/80 text-slate-500 hover:border-slate-600 hover:text-slate-400'
-                    }`}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border transition-all ${formData.status === 'OUT_OF_SERVICE'
+                      ? 'bg-red-600/20 border-red-500/50 text-red-400 ring-1 ring-red-500/30'
+                      : 'bg-slate-800/60 border-slate-700/80 text-slate-500 hover:border-slate-600 hover:text-slate-400'
+                      } disabled:opacity-50`}
                   >
                     <span className={`w-2 h-2 rounded-full ${formData.status === 'OUT_OF_SERVICE' ? 'bg-red-500' : 'bg-slate-600'}`} />
                     Out of Service
@@ -285,28 +296,63 @@ const ResourceModal = ({ isOpen, onClose, onSubmit, isEditing, resource }) => {
               </InputField>
             </div>
 
+            {/* Section: Additional Details (Moved to bottom for UX) */}
+            <div className="mt-6">
+              <SectionDivider label="Additional Details" />
+            </div>
+
+            {/* Description */}
+            <div className="mt-4 pb-2">
+              <InputField
+                label="Description (Optional)"
+                icon={<svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h8" /></svg>}
+              >
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  disabled={isSubmitting}
+                  rows="3"
+                  placeholder="Add any extra details about this resource (e.g. projector model, software installed in lab)..."
+                  className={`${inputClass(false)} resize-none`}
+                />
+              </InputField>
+            </div>
+
           </form>
         </div>
 
         {/* Modal Footer */}
         <div className="px-6 py-4 border-t border-slate-800 bg-slate-900/50 rounded-b-2xl flex items-center justify-between gap-3">
-          <p className="text-xs text-slate-600">
+          <p className="text-xs text-slate-600 font-medium">
             {isEditing ? 'Changes will be applied immediately.' : 'All required fields must be filled.'}
           </p>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all"
+              disabled={isSubmitting}
+              className="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
             <button
               type="submit"
               form="resource-form"
-              className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-primary-600 hover:bg-primary-500 active:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-slate-900 shadow-lg shadow-primary-900/30 transition-all"
+              disabled={isSubmitting}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-primary-600 hover:bg-primary-500 active:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-slate-900 shadow-lg shadow-primary-900/30 transition-all disabled:opacity-70 disabled:cursor-wait"
             >
-              {isEditing ? 'Save Changes' : 'Create Resource'}
+              {isSubmitting ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Saving...
+                </>
+              ) : (
+                isEditing ? 'Save Changes' : 'Create Resource'
+              )}
             </button>
           </div>
         </div>
