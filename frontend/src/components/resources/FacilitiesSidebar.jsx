@@ -1,14 +1,13 @@
 import { Link, useLocation } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth'
 
-const SidebarLink = ({ href, icon, label, isActive, soon = false }) => (
+const SidebarLink = ({ href, icon, label, isActive }) => (
   <Link
     to={href}
-    className={`relative flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all duration-200 ${
-      isActive
+    className={`relative flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all duration-200 ${isActive
         ? 'bg-primary-50 text-primary-700'
         : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
-    }`}
+      }`}
   >
     {/* Active left accent - Flush to the absolute left edge */}
     {isActive && (
@@ -24,12 +23,6 @@ const SidebarLink = ({ href, icon, label, isActive, soon = false }) => (
     </span>
 
     <span className="flex-1 truncate z-10 font-semibold">{label}</span>
-
-    {soon && (
-      <span className="ml-auto z-10 text-[9px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md uppercase tracking-wider">
-        Soon
-      </span>
-    )}
   </Link>
 )
 
@@ -51,22 +44,38 @@ const FacilitiesSidebar = () => {
       )
     },
     {
-      label: 'My Reservations',
-      href: '/resources/reservations',
-      soon: true,
+      label: 'Campus Map',
+      href: '/resources/map',
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
         </svg>
       )
     },
     {
-      label: 'Campus Map',
-      href: '/resources/map',
-      soon: true,
+      label: 'Lecture Halls',
+      href: '/resources/halls',
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+        </svg>
+      )
+    },
+    {
+      label: 'Laboratories',
+      href: '/resources/labs',
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+      )
+    },
+    {
+      label: 'Equipment',
+      href: '/resources/equipment',
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
         </svg>
       )
     }
@@ -76,21 +85,10 @@ const FacilitiesSidebar = () => {
     {
       label: 'Manage Resources',
       href: '/resources/manage',
-      soon: true,
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      )
-    },
-    {
-      label: 'Maintenance Queue', // Adjusted slightly to match length of "Admin Queue" in reference
-      href: '/resources/maintenance',
-      soon: true,
-      icon: (
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
         </svg>
       )
     }
@@ -99,7 +97,7 @@ const FacilitiesSidebar = () => {
   return (
     // Changed top padding to push items up closer to the edge, matching Skill Nest
     <div className="pt-6 h-full flex flex-col">
-      
+
       {/* Module Header - Kept identical but adjusted padding/margin */}
       <div className="flex items-center gap-3 px-6 mb-8">
         <div className="w-9 h-9 rounded-xl bg-primary-600 flex items-center justify-center shrink-0 shadow-sm">
@@ -126,18 +124,16 @@ const FacilitiesSidebar = () => {
             icon={link.icon}
             label={link.label}
             isActive={pathname === link.href}
-            soon={link.soon}
           />
         ))}
       </div>
 
-      {/* Admin Section */}
+      {/* Admin + Support Section */}
       {(isAdmin || forceAdmin) && (
         <div className="pr-4">
           <div className="px-6 mb-2">
-             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Administration</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Administration</p>
           </div>
-          
           <div className="space-y-1">
             {adminLinks.map(link => (
               <SidebarLink
@@ -146,20 +142,22 @@ const FacilitiesSidebar = () => {
                 icon={link.icon}
                 label={link.label}
                 isActive={pathname === link.href}
-                soon={link.soon}
               />
             ))}
+            {/* Contact Facilities — directly under Manage Resources */}
+            <SidebarLink
+              href="/resources/contact"
+              isActive={pathname === '/resources/contact'}
+              label="Contact Facilities"
+              icon={
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243-4.242a4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5" />
+                </svg>
+              }
+            />
           </div>
         </div>
       )}
-
-      {/* Footer hint - Pushed to bottom if needed, or kept inline */}
-      <div className="mt-auto mx-4 mb-6 px-4 py-3 bg-slate-50 rounded-xl border border-slate-100/50">
-        <p className="text-[10px] text-slate-400 leading-relaxed text-center">
-          Need help? <br />
-          <span className="text-primary-600 font-bold cursor-pointer hover:underline mt-1 inline-block">Contact Facilities</span>
-        </p>
-      </div>
     </div>
   )
 }

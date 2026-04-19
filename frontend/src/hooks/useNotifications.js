@@ -1,11 +1,16 @@
 import { useEffect } from 'react'
 import useNotificationStore from '../store/notificationStore'
 import { getNotifications, getUnreadCount, markAsRead, markAllAsRead, deleteNotification } from '../api/notificationApi'
+import useAuth from './useAuth'
 
 const useNotifications = () => {
   const store = useNotificationStore()
+  const { isAuthenticated } = useAuth()
 
   useEffect(() => {
+    // Only fetch notifications when the user is logged in
+    if (!isAuthenticated) return
+
     const load = async () => {
       try {
         const [notifRes, countRes] = await Promise.all([
@@ -17,7 +22,7 @@ const useNotifications = () => {
       } catch { /* silent */ }
     }
     load()
-  }, [])
+  }, [isAuthenticated])
 
   const handleMarkAsRead = async (id) => {
     try {

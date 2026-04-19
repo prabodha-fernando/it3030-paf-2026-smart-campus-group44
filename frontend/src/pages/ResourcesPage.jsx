@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import useAuth from '../hooks/useAuth'
 import Layout from '../components/common/Layout'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import ResourceModal from '../components/resources/ResourceModal'
 import FacilitiesSidebar from '../components/resources/FacilitiesSidebar'
+import StatusBadge from '../components/resources/StatusBadge'
 import {
   getAllResources, searchResources, createResource, updateResource, deleteResource
 } from '../api/resourceApi'
@@ -12,16 +14,10 @@ import {
 const getTypeStyle = (type = '') => {
   const t = type.toLowerCase()
   if (t.includes('room') || t.includes('hall') || t.includes('conference') || t.includes('lecture') || t.includes('class'))
-    return { accent: 'bg-blue-500', badge: 'bg-blue-50 text-blue-700 ring-blue-100', iconWrap: 'bg-blue-100 text-blue-600' }
+    return { accent: 'bg-primary-500', badge: 'bg-primary-50 text-primary-700 ring-primary-100', iconWrap: 'bg-primary-100 text-primary-600' }
   if (t.includes('lab') || t.includes('computer') || t.includes('studio') || t.includes('library'))
-    return { accent: 'bg-violet-500', badge: 'bg-violet-50 text-violet-700 ring-violet-100', iconWrap: 'bg-violet-100 text-violet-600' }
-  if (t.includes('projector') || t.includes('equipment') || t.includes('av') || t.includes('audio') || t.includes('camera'))
-    return { accent: 'bg-amber-500', badge: 'bg-amber-50 text-amber-700 ring-amber-100', iconWrap: 'bg-amber-100 text-amber-600' }
-  if (t.includes('vehicle') || t.includes('bus') || t.includes('van') || t.includes('car'))
-    return { accent: 'bg-teal-500', badge: 'bg-teal-50 text-teal-700 ring-teal-100', iconWrap: 'bg-teal-100 text-teal-600' }
-  if (t.includes('sport') || t.includes('gym') || t.includes('field') || t.includes('court') || t.includes('pool'))
-    return { accent: 'bg-orange-500', badge: 'bg-orange-50 text-orange-700 ring-orange-100', iconWrap: 'bg-orange-100 text-orange-600' }
-  return { accent: 'bg-primary-500', badge: 'bg-primary-50 text-primary-700 ring-primary-100', iconWrap: 'bg-primary-100 text-primary-600' }
+    return { accent: 'bg-accent-500', badge: 'bg-accent-50 text-accent-700 ring-accent-100', iconWrap: 'bg-accent-100 text-accent-600' }
+  return { accent: 'bg-slate-500', badge: 'bg-slate-50 text-slate-700 ring-slate-100', iconWrap: 'bg-slate-100 text-slate-600' }
 }
 
 const TypeIcon = ({ type = '', className = 'w-5 h-5' }) => {
@@ -39,9 +35,8 @@ const TypeIcon = ({ type = '', className = 'w-5 h-5' }) => {
   return <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
 }
 
-const ResourceCard = ({ resource: res, isAdmin, onEdit, onDelete, formatTime, confirmId, setConfirmId }) => {
+const ResourceCard = ({ resource: res, isAdmin, onEdit, onDelete, onView, formatTime, confirmId, setConfirmId }) => {
   const style = getTypeStyle(res.type)
-  const isActive = res.status === 'ACTIVE'
   const isConfirming = confirmId === res.id
 
   return (
@@ -55,12 +50,7 @@ const ResourceCard = ({ resource: res, isAdmin, onEdit, onDelete, formatTime, co
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${style.iconWrap}`}>
             <TypeIcon type={res.type} />
           </div>
-          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ring-1 ${
-            isActive ? 'bg-primary-50 text-primary-700 ring-primary-100' : 'bg-red-50 text-red-600 ring-red-100'
-          }`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-primary-500' : 'bg-red-500'}`} />
-            {isActive ? 'Active' : 'Maintenance'}
-          </span>
+          <StatusBadge status={res.status} />
         </div>
 
         {/* Title & type */}
@@ -101,42 +91,48 @@ const ResourceCard = ({ resource: res, isAdmin, onEdit, onDelete, formatTime, co
             {formatTime(res.availabilityStart)} – {formatTime(res.availabilityEnd)}
           </div>
 
-          {isAdmin ? (
-            <div className="flex items-center gap-1">
-              {isConfirming ? (
-                <>
-                  <span className="text-xs text-red-500 font-medium mr-1">Delete?</span>
-                  <button onClick={() => onDelete(res.id)}
-                    className="px-2.5 py-1 text-xs font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors">
-                    Yes
-                  </button>
-                  <button onClick={() => setConfirmId(null)}
-                    className="px-2.5 py-1 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">
-                    No
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button onClick={() => onEdit(res)}
-                    className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                    </svg>
-                  </button>
-                  <button onClick={() => setConfirmId(res.id)}
-                    className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </>
-              )}
-            </div>
-          ) : (
-            <button className="text-xs font-semibold text-primary-600 hover:text-primary-700 px-2.5 py-1 hover:bg-primary-50 rounded-lg transition-colors">
-              View →
+          <div className="flex items-center gap-1">
+            {/* View detail — always shown */}
+            <button
+              onClick={() => onView(res.id)}
+              className="p-1.5 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all"
+              title="View details"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
             </button>
-          )}
+
+            {isAdmin && (isConfirming ? (
+              <>
+                <span className="text-xs text-red-500 font-medium">Delete?</span>
+                <button onClick={() => onDelete(res.id)}
+                  className="px-2 py-1 text-xs font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors">
+                  Yes
+                </button>
+                <button onClick={() => setConfirmId(null)}
+                  className="px-2 py-1 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">
+                  No
+                </button>
+              </>
+            ) : (
+              <>
+                <button onClick={() => onEdit(res)}
+                  className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </button>
+                <button onClick={() => setConfirmId(res.id)}
+                  className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </>
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -184,9 +180,8 @@ const ResourceListRow = ({ resource: res, isAdmin, onEdit, onDelete, formatTime,
         {formatTime(res.availabilityStart)} – {formatTime(res.availabilityEnd)}
       </span>
 
-      <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ring-1 shrink-0 ${
-        isActive ? 'bg-primary-50 text-primary-700 ring-primary-100' : 'bg-red-50 text-red-600 ring-red-100'
-      }`}>
+      <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ring-1 shrink-0 ${isActive ? 'bg-primary-50 text-primary-700 ring-primary-100' : 'bg-red-50 text-red-600 ring-red-100'
+        }`}>
         <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-primary-500' : 'bg-red-500'}`} />
         {isActive ? 'Active' : 'Maint.'}
       </span>
@@ -240,13 +235,14 @@ const StatCard = ({ label, value, colorClass, iconBgClass, children }) => (
 
 const ResourcesPage = () => {
   const { isAdmin } = useAuth()
+  const navigate = useNavigate()
   const forceAdmin = true // 🚨 TEMPORARY UI TESTING OVERRIDE
 
   const [resources, setResources] = useState([])
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState('grid')
   const [confirmId, setConfirmId] = useState(null)
-  
+
   // NEW STATE: For Hero Carousel
   const [currentSlide, setCurrentSlide] = useState(0)
 
@@ -301,6 +297,7 @@ const ResourcesPage = () => {
 
   const handleAddClick = () => { setCurrentResource(null); setIsModalOpen(true) }
   const handleEditClick = (resource) => { setCurrentResource(resource); setIsModalOpen(true) }
+  const handleViewClick = (id) => navigate(`/resources/${id}`)
 
   const handleDeleteClick = async (id) => {
     try {
@@ -315,46 +312,17 @@ const ResourcesPage = () => {
 
   const handleModalSubmit = async (formData) => {
     try {
-      const payload = {
-        ...formData,
-        capacity: Number(formData.capacity),
-        availabilityStart: formData.availabilityStart || null,
-        availabilityEnd: formData.availabilityEnd || null,
-      }
-
       if (currentResource) {
-        await updateResource(currentResource.id, payload)
+        await updateResource(currentResource.id, formData)
         toast.success('Resource updated successfully')
       } else {
-        await createResource(payload)
+        await createResource(formData)
         toast.success('Resource created successfully')
       }
       setIsModalOpen(false)
       fetchResources()
     } catch (err) {
-      const status = err?.response?.status
-      const data = err?.response?.data
-      const message = data?.message
-      const firstValidationError = data?.validationErrors
-        ? Object.values(data.validationErrors)[0]
-        : null
-
-      if (status === 401) {
-        toast.error('Session expired. Please log in again and retry.')
-        return
-      }
-
-      if (status === 403) {
-        toast.error('You do not have permission to create resources.')
-        return
-      }
-
-      if (status === 400) {
-        toast.error(firstValidationError || message || 'Please check your input values')
-        return
-      }
-
-      toast.error(message || 'Operation failed')
+      toast.error(err.response?.status === 400 ? 'Please check your input values' : 'Operation failed')
     }
   }
 
@@ -382,12 +350,12 @@ const ResourcesPage = () => {
   const prevSlide = () => setCurrentSlide((prev) => (prev === 0 ? 2 : prev - 1))
 
   return (
-    <Layout>
-      <div className="w-[100vw] relative left-1/2 -ml-[50vw] min-h-[calc(100vh-64px)] -mt-8 bg-slate-50 flex flex-col lg:flex-row overflow-x-hidden">
-        
+    <Layout fullWidth>
+      <div className="flex flex-col lg:flex-row min-h-[calc(100vh-64px)] bg-slate-50">
+
         {/* Sidebar - Flush Left and starts exactly at top edge */}
         <div className="w-full lg:w-[260px] shrink-0 bg-white border-r border-slate-200 z-30 shadow-sm relative pt-4">
-          <div className="sticky top-0 h-screen overflow-y-auto">
+          <div className="sticky top-0 h-[calc(100vh-64px)] overflow-y-auto">
             <FacilitiesSidebar />
           </div>
         </div>
@@ -397,13 +365,13 @@ const ResourcesPage = () => {
 
           {/* Banner - Full Width. Added negative margin top to ensure it touches navbar if needed */}
           <div className="relative w-full h-[340px] overflow-hidden shadow-md group bg-slate-900 border-b border-slate-200/60">
-            
+
             {/* Inner Sliding Track */}
-            <div 
+            <div
               className="flex w-full h-full transition-transform duration-500 ease-in-out"
               style={{ transform: `translateX(-${currentSlide * 100}%)` }}
             >
-              
+
               {/* SLIDE 1: The "Resource Hub" Transparent Primary-Themed Screen */}
               <div className="min-w-full h-full relative bg-transparent bg-gradient-to-r from-primary-900/90 via-slate-900/90 to-primary-900/80 flex flex-col items-center justify-center text-center px-4">
                 {/* Tiny top badge */}
@@ -415,19 +383,19 @@ const ResourcesPage = () => {
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-4">
                   Facility <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-primary-200">Hub</span>
                 </h1>
-                
+
                 <p className="text-slate-300 text-sm md:text-base max-w-xl mx-auto leading-relaxed mb-8">
                   Discover lecture halls, computer labs, event spaces and specialized equipment — curated for students and managed by campus admins.
                 </p>
 
                 <div className="flex flex-wrap justify-center gap-3">
-                  <button className="px-5 py-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 text-white text-sm font-medium transition-colors flex items-center gap-2">
+                  <button onClick={() => navigate('/resources/halls')} className="px-5 py-2 rounded-full bg-white/10 hover:bg-blue-500/30 border border-white/10 hover:border-blue-400/50 text-white text-sm font-medium transition-all flex items-center gap-2">
                     <span>🏛️</span> Halls
                   </button>
-                  <button className="px-5 py-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 text-white text-sm font-medium transition-colors flex items-center gap-2">
+                  <button onClick={() => navigate('/resources/labs')} className="px-5 py-2 rounded-full bg-white/10 hover:bg-violet-500/30 border border-white/10 hover:border-violet-400/50 text-white text-sm font-medium transition-all flex items-center gap-2">
                     <span>💻</span> Labs
                   </button>
-                  <button className="px-5 py-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 text-white text-sm font-medium transition-colors flex items-center gap-2">
+                  <button onClick={() => navigate('/resources/equipment')} className="px-5 py-2 rounded-full bg-white/10 hover:bg-amber-500/30 border border-white/10 hover:border-amber-400/50 text-white text-sm font-medium transition-all flex items-center gap-2">
                     <span>📽️</span> Equipment
                   </button>
                   {forceAdmin && (
@@ -465,15 +433,15 @@ const ResourcesPage = () => {
             </div>
 
             {/* Left/Right Navigation Arrows (Skill Nest Style) */}
-            <button 
-              onClick={prevSlide} 
+            <button
+              onClick={prevSlide}
               className="absolute left-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/20 hover:bg-black/40 border border-white/10 text-white flex items-center justify-center backdrop-blur-md transition-colors opacity-0 group-hover:opacity-100"
             >
               <svg className="w-5 h-5 pr-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </button>
-            
-            <button 
-              onClick={nextSlide} 
+
+            <button
+              onClick={nextSlide}
               className="absolute right-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/20 hover:bg-black/40 border border-white/10 text-white flex items-center justify-center backdrop-blur-md transition-colors opacity-0 group-hover:opacity-100"
             >
               <svg className="w-5 h-5 pl-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
@@ -482,8 +450,8 @@ const ResourcesPage = () => {
             {/* Bottom Dot Indicators */}
             <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-30 flex gap-2">
               {[0, 1, 2].map((idx) => (
-                <button 
-                  key={idx} 
+                <button
+                  key={idx}
                   onClick={() => setCurrentSlide(idx)}
                   className={`h-1.5 rounded-full transition-all duration-300 ${currentSlide === idx ? 'w-6 bg-white' : 'w-1.5 bg-white/40 hover:bg-white/60'}`}
                 />
@@ -683,6 +651,7 @@ const ResourcesPage = () => {
                     isAdmin={forceAdmin}
                     onEdit={handleEditClick}
                     onDelete={handleDeleteClick}
+                    onView={handleViewClick}
                     formatTime={formatTime}
                     confirmId={confirmId}
                     setConfirmId={setConfirmId}

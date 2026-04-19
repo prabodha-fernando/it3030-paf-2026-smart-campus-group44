@@ -4,10 +4,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -57,9 +57,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleValidation(
             MethodArgumentNotValidException ex, HttpServletRequest request) {
         Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error -> 
-            errors.put(error.getField(), error.getDefaultMessage())
-        );
+        ex.getBindingResult().getFieldErrors()
+                .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiError.builder()
                         .status(400)
@@ -82,32 +81,20 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
-    @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<ApiError> handleNoResourceFound(
-            NoResourceFoundException ex, HttpServletRequest request) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiError.builder()
-                        .status(404)
-                        .error("Not Found")
-                        .message(ex.getMessage())
-                        .path(request.getRequestURI())
-                        .build());
-    }
-
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGeneral(
             Exception ex, HttpServletRequest request) {
         // Log the error so you can see the stack trace in your terminal
-        ex.printStackTrace(); 
-    
+        ex.printStackTrace();
+
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(ApiError.builder()
-                    .status(500)
-                    .error("Internal Server Error")
-                    // Adding ex.getMessage() helps you debug faster on port 5174
-                    .message("An unexpected error occurred: " + ex.getMessage()) 
-                    .path(request.getRequestURI())
-                    .build());
+                .body(ApiError.builder()
+                        .status(500)
+                        .error("Internal Server Error")
+                        // Adding ex.getMessage() helps you debug faster on port 5174
+                        .message("An unexpected error occurred: " + ex.getMessage())
+                        .path(request.getRequestURI())
+                        .build());
     }
-    
+
 }
