@@ -27,15 +27,8 @@ const AppContent = () => {
     <>
       <NotificationDrawer />
       <Routes>
-<<<<<<< HEAD
-        <Route
-          path="/login"
-          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />}
-        />
-=======
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
->>>>>>> origin/feature/module-d-auth-notifications
         <Route path="/auth/callback" element={<OAuthCallbackPage />} />
 
         <Route element={<PrivateRoute />}>
