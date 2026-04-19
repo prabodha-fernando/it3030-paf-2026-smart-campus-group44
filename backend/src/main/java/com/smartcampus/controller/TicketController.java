@@ -12,6 +12,7 @@ import com.smartcampus.model.TicketComment;
 import com.smartcampus.service.TicketService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -38,6 +39,22 @@ public class TicketController {
     @PreAuthorize("isAuthenticated()")
     public List<Ticket> getAllTickets() {
         return ticketService.getAllTickets();
+    }
+
+    @GetMapping("/my")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Page<Ticket>> getMyTickets(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(ticketService.listMyTickets(page, size));
+    }
+
+    @GetMapping("/open")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Page<Ticket>> getOpenTickets(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(ticketService.listOpenTickets(page, size));
     }
 
     @GetMapping("/{id}")

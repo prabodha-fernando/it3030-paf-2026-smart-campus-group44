@@ -45,6 +45,24 @@ public class BookingController {
                         page, size));
     }
 
+    @GetMapping("/my")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Page<BookingResponseDto>> getMyBookings(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(
+                bookingService.listBookings(java.util.Optional.empty(), java.util.Optional.empty(), page, size));
+    }
+
+    @GetMapping("/pending-approval")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Page<BookingResponseDto>> getBookingsPendingApproval(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(
+                bookingService.listBookings(java.util.Optional.of(BookingStatus.PENDING), java.util.Optional.empty(), page, size));
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<BookingResponseDto> getBooking(@PathVariable Long id) {
