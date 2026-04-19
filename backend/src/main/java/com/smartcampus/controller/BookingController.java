@@ -35,7 +35,7 @@ public class BookingController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<BookingResponseDto>> listBookings(
             @RequestParam(required = false) BookingStatus status,
-            @RequestParam(required = false) Long resourceId,
+            @RequestParam(required = false) String resourceId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         return ResponseEntity.ok(

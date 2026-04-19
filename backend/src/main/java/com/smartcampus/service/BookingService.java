@@ -36,13 +36,16 @@ public class BookingService {
 
     @Transactional
     public BookingResponseDto createBooking(BookingRequestDto request) {
+        // Auto-generate resource ID if not provided or generate a new one
+        String resourceId = generateResourceId();
+
         validateDateTime(request.getStartTime(), request.getEndTime());
-        checkBookingConflict(request.getResourceId(), request.getDate(),
+        checkBookingConflict(resourceId, request.getDate(),
                 request.getStartTime(), request.getEndTime());
 
         User user = authService.getCurrentUser();
         Booking booking = Booking.builder()
-                .resourceId(request.getResourceId())
+                .resourceId(resourceId)
                 .resourceName(request.getResourceName())
                 .resourceType(request.getResourceType())
                 .location(request.getLocation())
@@ -58,6 +61,24 @@ public class BookingService {
         return toDto(bookingRepository.save(booking));
     }
 
+    private String generateResourceId() {
+        // Generate unique resource ID in format R001, R002, etc.
+        Booking latestBooking = bookingRepository.findFirstByOrderByResourceIdDesc();
+        if (latestBooking == null || latestBooking.getResourceId() == null) {
+            return "R001";
+        }
+
+        String maxResourceId = latestBooking.getResourceId();
+        String numericPart = maxResourceId.replaceAll("^R", "");
+        int nextNumber;
+        try {
+            nextNumber = Integer.parseInt(numericPart) + 1;
+        } catch (NumberFormatException ex) {
+            nextNumber = 1;
+        }
+        return String.format("R%03d", nextNumber);
+    }
+
     public BookingResponseDto getBooking(Long id) {
         Booking booking = findBooking(id);
         User currentUser = authService.getCurrentUser();
@@ -70,7 +91,7 @@ public class BookingService {
     }
 
     public Page<BookingResponseDto> listBookings(Optional<BookingStatus> status,
-                                                 Optional<Long> resourceId,
+                                                 Optional<String> resourceId,
                                                  int page,
                                                  int size) {
         User currentUser = authService.getCurrentUser();
@@ -118,10 +139,10 @@ public class BookingService {
         if (booking.getStatus() != BookingStatus.PENDING) {
             throw new BadRequestException("Only pending bookings can be updated");
         }
-        checkBookingConflict(request.getResourceId(), request.getDate(),
+        checkBookingConflict(booking.getResourceId(), request.getDate(),
                 request.getStartTime(), request.getEndTime());
 
-        booking.setResourceId(request.getResourceId());
+        // Don't update resourceId as it's auto-generated and should remain the same
         booking.setResourceName(request.getResourceName());
         booking.setResourceType(request.getResourceType());
         booking.setLocation(request.getLocation());
@@ -215,20 +236,12 @@ public class BookingService {
                 bookings = bookingRepository.findAllByDateBetween(startDate, endDate, pageable);
             }
         } else {
-            // For regular users, only show their own bookings
+            // For regular users, only show their own bookings with proper date range filtering
             if (status.isPresent()) {
-                bookings = bookingRepository.findAllByRequestedByAndStatus(currentUser, status.get(), pageable);
+                bookings = bookingRepository.findAllByRequestedByAndDateBetweenAndStatus(currentUser, startDate, endDate, status.get(), pageable);
             } else {
-                bookings = bookingRepository.findAllByRequestedBy(currentUser, pageable);
+                bookings = bookingRepository.findAllByRequestedByAndDateBetween(currentUser, startDate, endDate, pageable);
             }
-            // Filter by date range manually since we don't have a custom query for this
-            bookings = new org.springframework.data.domain.PageImpl<>(
-                bookings.getContent().stream()
-                    .filter(b -> !b.getDate().isBefore(startDate) && !b.getDate().isAfter(endDate))
-                    .toList(),
-                pageable,
-                bookings.getTotalElements()
-            );
         }
 
         return bookings.map(this::toCalendarEventDto);
@@ -249,7 +262,7 @@ public class BookingService {
         }
     }
 
-    private void checkBookingConflict(Long resourceId, LocalDate date,
+    private void checkBookingConflict(String resourceId, LocalDate date,
                                       LocalTime startTime, LocalTime endTime) {
         boolean conflict = bookingRepository
                 .existsByResourceIdAndStatusAndDateAndStartTimeLessThanAndEndTimeGreaterThan(

@@ -14,26 +14,28 @@ import java.time.LocalTime;
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
+    Booking findFirstByOrderByResourceIdDesc();
+
     Page<Booking> findAllByRequestedBy(User requestedBy, Pageable pageable);
     Page<Booking> findAllByRequestedByAndStatus(User requestedBy,
                                               BookingStatus status,
                                               Pageable pageable);
     Page<Booking> findAllByRequestedByAndResourceId(User requestedBy,
-                                                    Long resourceId,
+                                                    String resourceId,
                                                     Pageable pageable);
     Page<Booking> findAllByRequestedByAndResourceIdAndStatus(User requestedBy,
-                                                            Long resourceId,
+                                                            String resourceId,
                                                             BookingStatus status,
                                                             Pageable pageable);
 
     Page<Booking> findAllByStatus(BookingStatus status, Pageable pageable);
-    Page<Booking> findAllByResourceId(Long resourceId, Pageable pageable);
-    Page<Booking> findAllByResourceIdAndStatus(Long resourceId,
+    Page<Booking> findAllByResourceId(String resourceId, Pageable pageable);
+    Page<Booking> findAllByResourceIdAndStatus(String resourceId,
                                                BookingStatus status,
                                                Pageable pageable);
 
     boolean existsByResourceIdAndStatusAndDateAndStartTimeLessThanAndEndTimeGreaterThan(
-            Long resourceId,
+            String resourceId,
             BookingStatus status,
             LocalDate date,
             LocalTime endTime,
@@ -42,5 +44,10 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     Page<Booking> findAllByDateBetween(LocalDate startDate, LocalDate endDate, Pageable pageable);
     Page<Booking> findAllByDateBetweenAndStatus(LocalDate startDate, LocalDate endDate,
                                                 BookingStatus status, Pageable pageable);
+
+    // Methods for regular users with date range filtering
+    Page<Booking> findAllByRequestedByAndDateBetween(User requestedBy, LocalDate startDate, LocalDate endDate, Pageable pageable);
+    Page<Booking> findAllByRequestedByAndDateBetweenAndStatus(User requestedBy, LocalDate startDate, LocalDate endDate,
+                                                             BookingStatus status, Pageable pageable);
 
 }

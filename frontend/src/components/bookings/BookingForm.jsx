@@ -1,8 +1,7 @@
 import { useState } from 'react'
 
-const BookingForm = ({ onSubmit, loading }) => {
+const BookingForm = ({ onSubmit, loading, isModal = false }) => {
   const [form, setForm] = useState({
-    resourceId: '',
     resourceName: '',
     resourceType: '',
     location: '',
@@ -13,6 +12,12 @@ const BookingForm = ({ onSubmit, loading }) => {
     attendees: '',
   })
 
+  // Get today's date in YYYY-MM-DD format for min date validation
+  const getTodayDate = () => {
+    const today = new Date()
+    return today.toISOString().split('T')[0]
+  }
+
   const handleChange = (field) => (event) => {
     setForm((prev) => ({ ...prev, [field]: event.target.value }))
   }
@@ -20,7 +25,6 @@ const BookingForm = ({ onSubmit, loading }) => {
   const handleSubmit = (event) => {
     event.preventDefault()
     onSubmit({
-      resourceId: Number(form.resourceId),
       resourceName: form.resourceName,
       resourceType: form.resourceType,
       location: form.location,
@@ -33,23 +37,25 @@ const BookingForm = ({ onSubmit, loading }) => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="card space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold text-stone-900">Request a new booking</h2>
-        <p className="text-sm text-stone-500 mt-1">Submit a reservation request for a campus resource.</p>
-      </div>
+    <form onSubmit={handleSubmit} className={isModal ? 'space-y-6' : 'card space-y-6'}>
+      {!isModal && (
+        <div>
+          <h2 className="text-lg font-semibold text-stone-900">Request a new booking</h2>
+          <p className="text-sm text-stone-500 mt-1">Submit a reservation request for a campus resource.</p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-stone-700 mb-2">Resource ID</label>
           <input
-            type="number"
-            value={form.resourceId}
-            onChange={handleChange('resourceId')}
-            placeholder="e.g. 101"
-            className="input-field"
-            required
+            type="text"
+            value="Auto-generated on submission"
+            readOnly
+            className="input-field bg-slate-50 cursor-not-allowed text-stone-500"
+            placeholder="Will be generated automatically"
           />
+          <p className="text-xs text-stone-500 mt-1">Unique identifier will be assigned when booking is created</p>
         </div>
 
         <div>
@@ -66,13 +72,18 @@ const BookingForm = ({ onSubmit, loading }) => {
 
         <div>
           <label className="block text-sm font-medium text-stone-700 mb-2">Resource type</label>
-          <input
-            type="text"
+          <select
             value={form.resourceType}
             onChange={handleChange('resourceType')}
-            placeholder="Lecture hall, lab, equipment"
             className="input-field"
-          />
+            required
+          >
+            <option value="">Select a resource type</option>
+            <option value="Library room">Library room</option>
+            <option value="Lecture hall">Lecture hall</option>
+            <option value="Lab">Lab</option>
+            <option value="Equipment">Equipment</option>
+          </select>
         </div>
 
         <div>
@@ -92,6 +103,7 @@ const BookingForm = ({ onSubmit, loading }) => {
             type="date"
             value={form.date}
             onChange={handleChange('date')}
+            min={getTodayDate()}
             className="input-field"
             required
           />
@@ -145,7 +157,7 @@ const BookingForm = ({ onSubmit, loading }) => {
       </div>
 
       <button type="submit" disabled={loading} className="btn-primary w-full">
-        {loading ? 'Submitting request...' : 'Send booking request'}
+        {loading ? 'Submitting...' : 'Create Booking Request'}
       </button>
     </form>
   )
