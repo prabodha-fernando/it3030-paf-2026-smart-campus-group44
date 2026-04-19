@@ -4,6 +4,7 @@ import useAuth from '../hooks/useAuth'
 import { getMyProfile, updateMyProfile, getRoleRequests, cancelRoleRequest } from '../api/authApi'
 import { getPreferences, updatePreferences } from '../api/notificationApi'
 import Layout from '../components/common/Layout'
+import PageTitle from '../components/common/PageTitle'
 import RoleRequestModal from '../components/auth/RoleRequestModal'
 import { getRoleBadgeClass, getRoleLabel, getInitials } from '../utils/roleUtils'
 import { ROLE_LABELS } from '../utils/constants'
@@ -20,6 +21,7 @@ const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState('profile')
   const [avatarLoadFailed, setAvatarLoadFailed] = useState(false)
 
+  // ...existing code...
   const [form, setForm] = useState({
     displayName: user?.displayName || '',
     department:  user?.department  || '',
@@ -82,6 +84,7 @@ const ProfilePage = () => {
 
   return (
     <Layout>
+      <PageTitle title="My Profile" />
       <div className="max-w-2xl mx-auto space-y-5">
 
         {/* Profile header card */}

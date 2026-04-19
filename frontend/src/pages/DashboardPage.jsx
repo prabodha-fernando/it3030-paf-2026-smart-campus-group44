@@ -1,4 +1,5 @@
 import Layout from '../components/common/Layout'
+import PageTitle from '../components/common/PageTitle'
 import useAuth from '../hooks/useAuth'
 import { Link } from 'react-router-dom'
 import { getRoleBadgeClass, getRoleLabel } from '../utils/roleUtils'
@@ -21,6 +22,7 @@ const DashboardPage = () => {
 
   return (
     <Layout>
+      <PageTitle title="Dashboard" />
       <div className="space-y-6">
 
         {/* Welcome */}

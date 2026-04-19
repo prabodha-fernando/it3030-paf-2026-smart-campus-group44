@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { startOfToday } from 'date-fns'
 import toast from 'react-hot-toast'
 import Layout from '../components/common/Layout'
+import PageTitle from '../components/common/PageTitle'
 import BookingForm from '../components/bookings/BookingForm'
 import BookingList from '../components/bookings/BookingList'
 import CalendarView from '../components/bookings/CalendarView'
@@ -171,6 +172,7 @@ const BookingsPage = () => {
 
   return (
     <Layout>
+      <PageTitle title="Browse Bookings" />
       <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
         {/* Sidebar */}
         <aside className="space-y-4">
