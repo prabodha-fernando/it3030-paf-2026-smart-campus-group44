@@ -6,9 +6,10 @@ import { getRoleLabel, getRoleBadgeClass, getInitials } from '../../utils/roleUt
 import { changeMyRole, logout } from '../../api/authApi'
 import { ROLES } from '../../utils/constants'
 import toast from 'react-hot-toast'
+import { getRefreshToken } from '../../utils/authStorage'
 
 const Navbar = () => {
-  const { user, logoutUser, isAdmin, refreshUser } = useAuth()
+  const { user, logoutUser, isAdmin, updateUser } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -33,7 +34,7 @@ const Navbar = () => {
   }, [user?.photoUrl])
 
   const handleLogout = async () => {
-    const refreshToken = localStorage.getItem('refreshToken')
+    const refreshToken = getRefreshToken()
     try { await logout(refreshToken) } catch { /* silent */ }
     logoutUser()
     navigate('/login')
@@ -45,12 +46,12 @@ const Navbar = () => {
 
     try {
       setSwitchingRole(true)
-      await changeMyRole(nextRole)
-      await refreshUser()
+      const { data: updatedUser } = await changeMyRole(nextRole)
+      updateUser(updatedUser)
       setMenuOpen(false)
-      toast.success(`Role changed to ${getRoleLabel(nextRole)}`)
+      toast.success(`Role changed to ${getRoleLabel(updatedUser?.role || nextRole)}`)
 
-      if ([ROLES.ADMIN, ROLES.SUPER_ADMIN].includes(nextRole)) {
+      if ([ROLES.ADMIN, ROLES.SUPER_ADMIN].includes(updatedUser?.role || nextRole)) {
         navigate('/admin/users')
       } else {
         navigate('/dashboard')

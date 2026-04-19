@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { API_BASE } from '../utils/constants'
 import { emitAuthLogout } from '../utils/authEvents'
+import { clearAuthTokens, getAccessToken, getRefreshToken, setAuthTokens } from '../utils/authStorage'
 
 const isUnexpectedHtmlApiResponse = (response) => {
   const contentType = response?.headers?.['content-type'] || ''
@@ -15,7 +16,7 @@ const axiosInstance = axios.create({
 })
 
 axiosInstance.interceptors.request.use((config) => {
-  const token = localStorage.getItem('accessToken')
+  const token = getAccessToken()
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
@@ -23,7 +24,7 @@ axiosInstance.interceptors.request.use((config) => {
 axiosInstance.interceptors.response.use(
   (response) => {
     if (isUnexpectedHtmlApiResponse(response)) {
-      localStorage.clear()
+      clearAuthTokens()
       emitAuthLogout()
       return Promise.reject(new Error('Unauthorized HTML response for API request'))
     }
@@ -33,20 +34,19 @@ axiosInstance.interceptors.response.use(
     const original = error.config
     if (error.response?.status === 401 && !original._retry) {
       original._retry = true
-      const refreshToken = localStorage.getItem('refreshToken')
+      const refreshToken = getRefreshToken()
       if (!refreshToken) {
-        localStorage.clear()
+        clearAuthTokens()
         emitAuthLogout()
         return Promise.reject(error)
       }
       try {
         const { data } = await axios.post(`${API_BASE}/api/v1/auth/refresh`, { refreshToken })
-        localStorage.setItem('accessToken',  data.accessToken)
-        localStorage.setItem('refreshToken', data.refreshToken)
+        setAuthTokens(data.accessToken, data.refreshToken)
         original.headers.Authorization = `Bearer ${data.accessToken}`
         return axiosInstance(original)
       } catch {
-        localStorage.clear()
+        clearAuthTokens()
         emitAuthLogout()
         return Promise.reject(error)
       }

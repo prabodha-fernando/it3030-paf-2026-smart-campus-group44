@@ -23,6 +23,10 @@ public class TicketAttachment {
     @JoinColumn(name = "ticket_id", nullable = false)
     private Ticket ticket;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "uploaded_by")
+    private User uploadedBy;
+
     @Column(name = "file_name", nullable = false)
     private String fileName;
 

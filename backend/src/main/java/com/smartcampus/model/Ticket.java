@@ -27,6 +27,15 @@ public class Ticket {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "resource_or_location")
+    private String resourceOrLocation;
+
+    @Column(name = "resource_id")
+    private Long resourceId;
+
+    @Column(name = "preferred_contact")
+    private String preferredContact;
+
     private String priority;
 
     @Enumerated(EnumType.STRING)

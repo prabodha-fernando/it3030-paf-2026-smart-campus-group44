@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuthContext } from '../context/AuthContext'
 import { getMyProfile } from '../api/authApi'
 import LoadingSpinner from '../components/common/LoadingSpinner'
+import { setAuthTokens } from '../utils/authStorage'
 
 const OAuthCallbackPage = () => {
   const navigate   = useNavigate()
@@ -16,8 +17,7 @@ const OAuthCallbackPage = () => {
 
     if (!token) { navigate('/login?error=auth_failed', { replace: true }); return }
 
-    localStorage.setItem('accessToken',  token)
-    localStorage.setItem('refreshToken', refreshToken)
+    setAuthTokens(token, refreshToken)
 
     getMyProfile()
       .then(({ data }) => {
