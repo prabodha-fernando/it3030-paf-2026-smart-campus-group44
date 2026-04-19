@@ -5,7 +5,7 @@ import PrivateRoute from './components/auth/PrivateRoute'
 import NotificationDrawer from './components/notifications/NotificationDrawer'
 import useWebSocket from './hooks/useWebSocket'
 import useAuth from './hooks/useAuth'
-
+import HomePage from './pages/HomePage'
 import LoginPage         from './pages/LoginPage'
 import OAuthCallbackPage from './pages/OAuthCallbackPage'
 import OnboardingPage    from './pages/OnboardingPage'
@@ -21,6 +21,7 @@ const AppContent = () => {
     <>
       <NotificationDrawer />
       <Routes>
+        <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/auth/callback" element={<OAuthCallbackPage />} />
 
@@ -35,8 +36,9 @@ const AppContent = () => {
           <Route path="/admin/users" element={<AdminUsersPage />} />
         </Route>
 
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        {/*<Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />*/}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
   )
