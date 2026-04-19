@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary-50:  #ECFDF5;
+  --color-primary-50: #ECFDF5;
   --color-primary-100: #D1FAE5;
   --color-primary-200: #A7F3D0;
   --color-primary-400: #34D399;
@@ -12,7 +12,7 @@
   --color-primary-800: #065F46;
   --color-primary-900: #064E3B;
 
-  --color-accent-50:  #FFFBEB;
+  --color-accent-50: #FFFBEB;
   --color-accent-100: #FEF3C7;
   --color-accent-200: #FDE68A;
   --color-accent-400: #FBBF24;
@@ -25,29 +25,68 @@
   --font-sans: 'Inter', system-ui, sans-serif;
 
   --animate-slide-in: slideIn 0.25s ease-out;
-  --animate-fade-in:  fadeIn 0.2s ease-out;
+  --animate-fade-in: fadeIn 0.2s ease-out;
   --animate-pulse-dot: pulseDot 2s infinite;
 
   @keyframes slideIn {
-    from { transform: translateX(100%); }
-    to   { transform: translateX(0); }
+    from {
+      transform: translateX(100%);
+    }
+
+    to {
+      transform: translateX(0);
+    }
   }
+
   @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-8px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
+
   @keyframes pulseDot {
-    0%, 100% { opacity: 1; }
-    50%       { opacity: 0.4; }
+
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.4;
+    }
   }
 }
 
 @layer base {
-  * { border-color: #e7e5e4; }
-  body { background-color: #fafaf9; color: #1c1917; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background-color: #f5f5f4; }
-  ::-webkit-scrollbar-thumb { background-color: #d6d3d1; border-radius: 9999px; }
+  * {
+    border-color: #e7e5e4;
+  }
+
+  body {
+    background-color: #fafaf9;
+    color: #1c1917;
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background-color: #f5f5f4;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: #d6d3d1;
+    border-radius: 9999px;
+  }
 }
 
 @layer components {
@@ -59,14 +98,25 @@
     border-radius: 0.5rem;
     transition: all 150ms;
   }
+
   .btn-primary:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
-  .btn-primary:hover { background-color: #1d4ed8; }
-  .btn-primary:active { transform: scale(0.95); }
-  .btn-primary:focus { outline: none; box-shadow: 0 0 0 2px #3b82f6; }
-  
+
+  .btn-primary:hover {
+    background-color: #1d4ed8;
+  }
+
+  .btn-primary:active {
+    transform: scale(0.95);
+  }
+
+  .btn-primary:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #3b82f6;
+  }
+
   .btn-secondary {
     background-color: white;
     color: #44403c;
@@ -76,10 +126,20 @@
     border: 1px solid #e7e5e4;
     transition: all 150ms;
   }
-  .btn-secondary:hover { background-color: #fafaf9; }
-  .btn-secondary:active { transform: scale(0.95); }
-  .btn-secondary:focus { outline: none; box-shadow: 0 0 0 2px #d6d3d1; }
-  
+
+  .btn-secondary:hover {
+    background-color: #fafaf9;
+  }
+
+  .btn-secondary:active {
+    transform: scale(0.95);
+  }
+
+  .btn-secondary:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #d6d3d1;
+  }
+
   .btn-danger {
     background-color: #dc2626;
     color: white;
@@ -88,9 +148,15 @@
     border-radius: 0.5rem;
     transition: all 150ms;
   }
-  .btn-danger:hover { background-color: #b91c1c; }
-  .btn-danger:active { transform: scale(0.95); }
-  
+
+  .btn-danger:hover {
+    background-color: #b91c1c;
+  }
+
+  .btn-danger:active {
+    transform: scale(0.95);
+  }
+
   .input-field {
     width: 100%;
     padding: 0.625rem 0.875rem;
@@ -101,10 +167,24 @@
     font-size: 0.875rem;
     transition: all 150ms;
   }
-  .input-field::placeholder { color: #a8a29e; }
-  .input-field:focus { outline: none; box-shadow: 0 0 0 2px #3b82f6; border-color: transparent; }
-  
-  .card { background-color: white; border-radius: 0.75rem; border: 1px solid #e7e5e4; padding: 1.25rem; }
+
+  .input-field::placeholder {
+    color: #a8a29e;
+  }
+
+  .input-field:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #3b82f6;
+    border-color: transparent;
+  }
+
+  .card {
+    background-color: white;
+    border-radius: 0.75rem;
+    border: 1px solid #e7e5e4;
+    padding: 1.25rem;
+  }
+
   .badge {
     display: inline-flex;
     align-items: center;
