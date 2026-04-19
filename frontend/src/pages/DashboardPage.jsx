@@ -1,5 +1,6 @@
 import Layout from '../components/common/Layout'
 import useAuth from '../hooks/useAuth'
+import useDashboardStats from '../hooks/useDashboardStats'
 import { Link } from 'react-router-dom'
 import { getRoleBadgeClass, getRoleLabel } from '../utils/roleUtils'
 
@@ -15,6 +16,7 @@ const QuickAction = ({ to, icon, label, desc, color }) => (
 
 const DashboardPage = () => {
   const { user, isAdmin } = useAuth()
+  const { stats, loading: statsLoading, error: statsError } = useDashboardStats()
 
   return (
     <Layout>
@@ -35,17 +37,32 @@ const DashboardPage = () => {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { label: 'My bookings', value: '3', color: 'text-primary-600', bg: 'bg-primary-50' },
-            { label: 'Pending approval', value: '1', color: 'text-accent-600', bg: 'bg-accent-50' },
-            { label: 'Open tickets', value: '2', color: 'text-blue-600', bg: 'bg-blue-50' },
-            { label: 'Notifications', value: '4', color: 'text-stone-600', bg: 'bg-stone-50' },
-          ].map((stat) => (
-            <div key={stat.label} className={`card ${stat.bg} border-0`}>
-              <p className={`text-2xl font-semibold ${stat.color}`}>{stat.value}</p>
-              <p className="text-xs text-stone-500 mt-1">{stat.label}</p>
+          {statsLoading ? (
+            // Loading skeleton
+            Array(4).fill(0).map((_, i) => (
+              <div key={i} className="card bg-stone-50 border-0 animate-pulse">
+                <div className="h-8 bg-stone-200 rounded mb-2"></div>
+                <div className="h-4 bg-stone-200 rounded"></div>
+              </div>
+            ))
+          ) : statsError ? (
+            // Error state
+            <div className="col-span-full card bg-red-50 border-red-200">
+              <p className="text-red-600 text-sm">Failed to load dashboard stats</p>
             </div>
-          ))}
+          ) : (
+            [
+              { label: 'My bookings', value: stats.myBookings, color: 'text-primary-600', bg: 'bg-primary-50' },
+              { label: 'Pending approval', value: stats.pendingApproval, color: 'text-accent-600', bg: 'bg-accent-50' },
+              { label: 'Open tickets', value: stats.openTickets, color: 'text-blue-600', bg: 'bg-blue-50' },
+              { label: 'Notifications', value: stats.notifications, color: 'text-stone-600', bg: 'bg-stone-50' },
+            ].map((stat) => (
+              <div key={stat.label} className={`card ${stat.bg} border-0`}>
+                <p className={`text-2xl font-semibold ${stat.color}`}>{stat.value}</p>
+                <p className="text-xs text-stone-500 mt-1">{stat.label}</p>
+              </div>
+            ))
+          )}
         </div>
 
         {/* Quick actions */}

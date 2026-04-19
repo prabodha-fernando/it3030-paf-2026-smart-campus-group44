@@ -18,6 +18,7 @@ const ProfilePage = () => {
   const [prefs, setPrefs] = useState(null)
   const [fullProfile, setFullProfile] = useState(null)
   const [activeTab, setActiveTab] = useState('profile')
+  const [errors, setErrors] = useState({})
 
   const [form, setForm] = useState({
     displayName: user?.displayName || '',
@@ -35,9 +36,14 @@ const ProfilePage = () => {
     setForm({ displayName: data.displayName || '', department: data.department || '', phone: data.phone || '' })
   }).catch(() => {})
 
-    getRoleRequests({ status: 'PENDING' })
-      .then(({ data }) => { if (data.length > 0) setPendingRequest(data[0]) })
-      .catch(() => {})
+    getRoleRequests()
+  .then(({ data }) => {
+    const pending = data.find(
+      (r) => r.status === 'PENDING' && r.userId === user.id
+    )
+    setPendingRequest(pending || null)
+  })
+  .catch(() => {})
 
     getPreferences()
       .then(({ data }) => setPrefs(data))
@@ -45,15 +51,34 @@ const ProfilePage = () => {
   }, [])
 
   const handleSaveProfile = async () => {
+    // Validate phone
+    const newErrors = {}
+    if (form.phone && !/^0\d{9}$/.test(form.phone)) {
+      newErrors.phone = 'Phone must be 10 digits starting with 0'
+    }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return
+    }
+    setErrors({})
+
     setLoading(true)
     try {
        const { data } = await updateMyProfile(form)
        setFullProfile(data)
        setEditing(false)
        toast.success('Profile updated')
-      } catch { toast.error('Failed to update profile') }
-      finally { setLoading(false) }
-    }
+      } catch (err) {
+         console.log(err.response) // show error in console
+         const msg =
+         err.response?.data?.validationErrors?.[0] ||
+         err.response?.data?.message ||
+         'Failed to update profile'
+         toast.error(msg)
+        }finally {
+           setLoading(false)
+           }
+          }
 
   const handleSavePrefs = async () => {
     setLoading(true)
@@ -65,12 +90,15 @@ const ProfilePage = () => {
   }
 
   const handleCancelRoleRequest = async () => {
-    try {
-      await cancelRoleRequest(pendingRequest.id)
-      setPendingRequest(null)
-      toast.success('Role request cancelled')
-    } catch { toast.error('Failed to cancel request') }
+  try {
+    await cancelRoleRequest(pendingRequest.id)
+    setPendingRequest(null)
+    toast.success('Role request cancelled')
+  } catch (err) {
+    const msg = err.response?.data?.message || 'Failed to cancel request'
+    toast.error(msg)
   }
+}
 
   const completeness = [user?.displayName, user?.department, user?.phone, user?.photoUrl]
     .filter(Boolean).length / 4 * 100
@@ -135,7 +163,7 @@ const ProfilePage = () => {
             <div className="flex items-center justify-between">
               <h2 className="font-medium text-stone-900">Personal information</h2>
               {!editing && (
-                <button onClick={() => setEditing(true)}
+                <button onClick={() => { setEditing(true); setErrors({}) }}
                   className="text-sm text-primary-600 hover:text-primary-700 font-medium">
                   Edit
                 </button>
@@ -161,6 +189,7 @@ const ProfilePage = () => {
                   <input type="tel" value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
                     className="input-field" />
+                  {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
                 </div>
                 <div className="flex gap-3 pt-1">
                   <button onClick={() => setEditing(false)} className="btn-secondary">Cancel</button>
@@ -266,8 +295,9 @@ const ProfilePage = () => {
       {showRoleModal && (
         <RoleRequestModal
           onClose={() => setShowRoleModal(false)}
-          onSuccess={() => getRoleRequests({ status: 'PENDING' })
-            .then(({ data }) => setPendingRequest(data[0] || null)).catch(() => {})}
+          onSuccess={() =>getRoleRequests().then(({ data }) => {const pending = data.find((request) => request.status === 'PENDING')
+            setPendingRequest(pending || null)})
+             .catch(() => {})}
         />
       )}
     </Layout>

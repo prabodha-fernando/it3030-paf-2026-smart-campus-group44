@@ -104,7 +104,7 @@ const LoginPage = () => {
           </a>
 
           <p className="text-xs text-stone-400 text-center mt-5">
-            University accounts only — @my.sliit.lk
+            University accounts only — @gmail.com
           </p>
 
           {/* Features list */}
