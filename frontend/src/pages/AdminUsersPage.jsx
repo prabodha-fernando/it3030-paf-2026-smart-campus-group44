@@ -13,6 +13,7 @@ const AdminUsersPage = () => {
   const { user: currentUser } = useAuth()
   const [activeTab,    setActiveTab]    = useState('Users')
   const [users,        setUsers]        = useState([])
+  const [avatarLoadFailed, setAvatarLoadFailed] = useState({})
   const [requests,     setRequests]     = useState([])
   const [loading,      setLoading]      = useState(true)
   const [searchQuery,  setSearchQuery]  = useState('')
@@ -36,6 +37,10 @@ const AdminUsersPage = () => {
   }
 
   useEffect(() => { loadUsers(); loadRequests() }, [roleFilter])
+
+  useEffect(() => {
+    setAvatarLoadFailed({})
+  }, [users])
 
   const handleChangeRole = async (userId, role) => {
     if (userId === currentUser?.id) {
@@ -139,8 +144,13 @@ const AdminUsersPage = () => {
                       <tr key={u.id} className="hover:bg-stone-50">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
-                            {u.photoUrl ? (
-                              <img src={u.photoUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
+                            {u.photoUrl && !avatarLoadFailed[u.id] ? (
+                              <img
+                                src={u.photoUrl}
+                                alt=""
+                                className="w-8 h-8 rounded-full object-cover"
+                                onError={() => setAvatarLoadFailed((prev) => ({ ...prev, [u.id]: true }))}
+                              />
                             ) : (
                               <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-xs font-semibold">
                                 {getInitials(u.displayName)}

@@ -315,17 +315,46 @@ const ResourcesPage = () => {
 
   const handleModalSubmit = async (formData) => {
     try {
+      const payload = {
+        ...formData,
+        capacity: Number(formData.capacity),
+        availabilityStart: formData.availabilityStart || null,
+        availabilityEnd: formData.availabilityEnd || null,
+      }
+
       if (currentResource) {
-        await updateResource(currentResource.id, formData)
+        await updateResource(currentResource.id, payload)
         toast.success('Resource updated successfully')
       } else {
-        await createResource(formData)
+        await createResource(payload)
         toast.success('Resource created successfully')
       }
       setIsModalOpen(false)
       fetchResources()
     } catch (err) {
-      toast.error(err.response?.status === 400 ? 'Please check your input values' : 'Operation failed')
+      const status = err?.response?.status
+      const data = err?.response?.data
+      const message = data?.message
+      const firstValidationError = data?.validationErrors
+        ? Object.values(data.validationErrors)[0]
+        : null
+
+      if (status === 401) {
+        toast.error('Session expired. Please log in again and retry.')
+        return
+      }
+
+      if (status === 403) {
+        toast.error('You do not have permission to create resources.')
+        return
+      }
+
+      if (status === 400) {
+        toast.error(firstValidationError || message || 'Please check your input values')
+        return
+      }
+
+      toast.error(message || 'Operation failed')
     }
   }
 
