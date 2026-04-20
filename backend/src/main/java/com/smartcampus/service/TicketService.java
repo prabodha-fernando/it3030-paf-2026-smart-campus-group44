@@ -24,6 +24,10 @@ import com.smartcampus.repository.TicketRepository;
 import com.smartcampus.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -150,6 +154,23 @@ public class TicketService {
             return ticketRepository.findAllWithExistingUsersOrderByCreatedAtDesc();
         }
         return ticketRepository.findAllVisibleToUserOrderByCreatedAtDesc(currentUser.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Ticket> listMyTickets(int page, int size) {
+        User currentUser = authService.getCurrentUser();
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return ticketRepository.findAllByUser(currentUser, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Ticket> listOpenTickets(int page, int size) {
+        User currentUser = authService.getCurrentUser();
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        if (isAdmin(currentUser) || isStaff(currentUser)) {
+            return ticketRepository.findAllByStatus(TicketStatus.OPEN, pageable);
+        }
+        return ticketRepository.findAllByUserAndStatus(currentUser, TicketStatus.OPEN, pageable);
     }
 
     @Transactional(readOnly = true)

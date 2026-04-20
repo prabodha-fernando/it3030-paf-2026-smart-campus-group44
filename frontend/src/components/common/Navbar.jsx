@@ -2,24 +2,19 @@ import { useState, useRef, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth'
 import NotificationBell from '../notifications/NotificationBell'
+import { logout } from '../../api/authApi'
 import { getRoleLabel, getRoleBadgeClass, getInitials } from '../../utils/roleUtils'
-import { changeMyRole, logout } from '../../api/authApi'
-import { ROLES } from '../../utils/constants'
 import toast from 'react-hot-toast'
 import { getRefreshToken } from '../../utils/authStorage'
 
 const Navbar = () => {
-  const { user, logoutUser, isAdmin, updateUser } = useAuth()
+  const { user, logoutUser, isAdmin } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
-  const [switchingRole, setSwitchingRole] = useState(false)
   const [avatarLoadFailed, setAvatarLoadFailed] = useState(false)
   const menuRef = useRef(null)
 
-  const roleOptions = Object.values(ROLES).filter(
-    (role) => role !== ROLES.SUPER_ADMIN && role !== ROLES.HOD,
-  )
 
   useEffect(() => {
     const handler = (e) => {
@@ -41,30 +36,7 @@ const Navbar = () => {
     toast.success('Signed out successfully')
   }
 
-  const handleRoleSwitch = async (nextRole) => {
-    if (!user?.role || user.role === nextRole) return
 
-    try {
-      setSwitchingRole(true)
-      const { data: updatedUser } = await changeMyRole(nextRole)
-      updateUser(updatedUser)
-      setMenuOpen(false)
-      toast.success(`Role changed to ${getRoleLabel(updatedUser?.role || nextRole)}`)
-
-      if ([ROLES.ADMIN, ROLES.SUPER_ADMIN].includes(updatedUser?.role || nextRole)) {
-        navigate('/admin/users')
-      } else {
-        navigate('/dashboard')
-      }
-    } catch (err) {
-      const message = err?.response?.data?.message
-        || err?.response?.data?.error
-        || `Failed to switch role${err?.response?.status ? ` (${err.response.status})` : ''}`
-      toast.error(message)
-    } finally {
-      setSwitchingRole(false)
-    }
-  }
 
   const navLinks = [
     { label: 'Dashboard',  to: '/dashboard' },
@@ -161,24 +133,6 @@ const Navbar = () => {
                     </svg>
                     Notification settings
                   </Link>
-                  <div className="px-4 py-3 border-t border-stone-100">
-                    <label htmlFor="role-switch" className="block text-xs font-medium text-stone-500 mb-1">
-                      Switch role
-                    </label>
-                    <select
-                      id="role-switch"
-                      value={user?.role || ''}
-                      disabled={switchingRole}
-                      onChange={(e) => handleRoleSwitch(e.target.value)}
-                      className="w-full rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-60"
-                    >
-                      {roleOptions.map((role) => (
-                        <option key={role} value={role}>
-                          {getRoleLabel(role)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
                   <div className="border-t border-stone-100 mt-1">
                     <button onClick={handleLogout}
                       className="flex items-center gap-2.5 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50">
