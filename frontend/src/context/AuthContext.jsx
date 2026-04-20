@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { getMe } from '../api/authApi'
+import { AUTH_LOGOUT_EVENT } from '../utils/authEvents'
+import { clearAuthTokens, getAccessToken, setAuthTokens } from '../utils/authStorage'
 
 const AuthContext = createContext(null)
 
@@ -8,14 +10,13 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   const loadUser = useCallback(async () => {
-    const token = localStorage.getItem('accessToken')
+    const token = getAccessToken()
     if (!token) { setLoading(false); return }
     try {
       const { data } = await getMe()
       setUser(data)
     } catch {
-      localStorage.removeItem('accessToken')
-      localStorage.removeItem('refreshToken')
+      clearAuthTokens()
     } finally {
       setLoading(false)
     }
@@ -23,15 +24,28 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => { loadUser() }, [loadUser])
 
+  useEffect(() => {
+    const handleLogout = () => {
+      setUser(null)
+      setLoading(false)
+    }
+
+    window.addEventListener(AUTH_LOGOUT_EVENT, handleLogout)
+    return () => window.removeEventListener(AUTH_LOGOUT_EVENT, handleLogout)
+  }, [])
+
   const login = (accessToken, refreshToken, userData) => {
-    localStorage.setItem('accessToken',  accessToken)
-    localStorage.setItem('refreshToken', refreshToken)
+    setAuthTokens(accessToken, refreshToken)
     setUser(userData)
   }
 
   const logoutUser = () => {
-    localStorage.clear()
+    clearAuthTokens()
     setUser(null)
+  }
+
+  const updateUser = (userData) => {
+    setUser(userData)
   }
 
   const refreshUser = async () => {
@@ -42,7 +56,7 @@ export const AuthProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logoutUser, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, login, logoutUser, refreshUser, updateUser }}>
       {children}
     </AuthContext.Provider>
   )

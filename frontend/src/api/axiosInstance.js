@@ -1,5 +1,13 @@
 import axios from 'axios'
 import { API_BASE } from '../utils/constants'
+import { emitAuthLogout } from '../utils/authEvents'
+import { clearAuthTokens, getAccessToken, getRefreshToken, setAuthTokens } from '../utils/authStorage'
+
+const isUnexpectedHtmlApiResponse = (response) => {
+  const contentType = response?.headers?.['content-type'] || ''
+  const url = response?.config?.url || ''
+  return url.startsWith('/api') && contentType.includes('text/html')
+}
 
 const axiosInstance = axios.create({
   baseURL: API_BASE || '',
@@ -23,13 +31,20 @@ const processQueue = (error, token = null) => {
 // --------------------------------------------
 
 axiosInstance.interceptors.request.use((config) => {
-  const token = localStorage.getItem('accessToken')
+  const token = getAccessToken()
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 }, (error) => Promise.reject(error))
 
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (isUnexpectedHtmlApiResponse(response)) {
+      clearAuthTokens()
+      emitAuthLogout()
+      return Promise.reject(new Error('Unauthorized HTML response for API request'))
+    }
+    return response
+  },
   async (error) => {
     const originalRequest = error.config
 
@@ -51,11 +66,11 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true
       isRefreshing = true
 
-      const refreshToken = localStorage.getItem('refreshToken')
+      const refreshToken = getRefreshToken()
 
       if (!refreshToken) {
-        localStorage.clear()
-        window.location.replace('/login') // Use replace to prevent "Back" button weirdness
+        clearAuthTokens()
+        emitAuthLogout()
         return Promise.reject(error)
       }
 
@@ -63,11 +78,7 @@ axiosInstance.interceptors.response.use(
         // 3. Attempt to fetch the new tokens
         const { data } = await axios.post(`${API_BASE}/api/v1/auth/refresh`, { refreshToken })
 
-        localStorage.setItem('accessToken', data.accessToken)
-        // Only update refresh token if the backend rotates it
-        if (data.refreshToken) {
-          localStorage.setItem('refreshToken', data.refreshToken)
-        }
+        setAuthTokens(data.accessToken, data.refreshToken)
 
         // 4. Update the failed request's header and process the queue
         axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${data.accessToken}`
@@ -77,10 +88,10 @@ axiosInstance.interceptors.response.use(
 
         return axiosInstance(originalRequest)
       } catch (refreshError) {
-        // 5. If the refresh fails (e.g., refresh token is expired), purge everything
+        // 5. If the refresh fails, purge everything
         processQueue(refreshError, null)
-        localStorage.clear()
-        window.location.replace('/login')
+        clearAuthTokens()
+        emitAuthLogout()
         return Promise.reject(refreshError)
       } finally {
         // 6. Unlock the refresh process

@@ -1,5 +1,8 @@
 export const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
-export const WS_URL   = import.meta.env.VITE_WS_URL       || 'http://localhost:8080/ws'
+const rawWsUrl = import.meta.env.VITE_WS_URL || 'http://localhost:8080/ws'
+export const WS_URL = rawWsUrl
+  .replace(/^ws:/i, 'http:')
+  .replace(/^wss:/i, 'https:')
 
 export const ROLES = {
   SUPER_ADMIN:      'SUPER_ADMIN',
@@ -41,10 +44,10 @@ export const NOTIF_CATEGORY_LABELS = {
 }
 
 export const BOOKING_STATUS_COLORS = {
-  PENDING:   'bg-accent-100 text-accent-800',
-  APPROVED:  'bg-primary-100 text-primary-800',
+  PENDING:   'bg-yellow-100 text-yellow-800',
+  APPROVED:  'bg-green-100 text-green-800',
   REJECTED:  'bg-red-100 text-red-700',
-  CANCELLED: 'bg-stone-100 text-stone-600',
+  CANCELLED: 'bg-slate-100 text-slate-700',
 }
 
 export const TICKET_STATUS_COLORS = {

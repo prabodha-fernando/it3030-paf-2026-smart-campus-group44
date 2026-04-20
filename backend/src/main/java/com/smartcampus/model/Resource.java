@@ -15,10 +15,11 @@ import java.time.LocalTime;
 @AllArgsConstructor
 @Builder
 @Entity
-// Adding indexes makes database searches (filtering by type or status) significantly faster
+// Adding indexes makes database searches (filtering by type or status)
+// significantly faster
 @Table(name = "resources", indexes = {
-    @Index(name = "idx_resource_type", columnList = "type"),
-    @Index(name = "idx_resource_status", columnList = "status")
+        @Index(name = "idx_resource_type", columnList = "type"),
+        @Index(name = "idx_resource_status", columnList = "status")
 })
 public class Resource {
 
@@ -61,16 +62,19 @@ public class Resource {
     @Column(length = 500)
     private String description;
 
-    // Optimistic Locking: Prevents two admins from overwriting each other's edits simultaneously
+    // Optimistic Locking: Prevents two admins from overwriting each other's edits
+    // simultaneously
     @Version
     private Long version;
 
-    // Audit Trails: Automatically tracks exactly when the resource was added to the system
+    // Audit Trails: Automatically tracks exactly when the resource was added to the
+    // system
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    // Audit Trails: Automatically updates the timestamp whenever the resource is modified
+    // Audit Trails: Automatically updates the timestamp whenever the resource is
+    // modified
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;

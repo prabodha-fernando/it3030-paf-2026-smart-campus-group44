@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import useAuth from '../hooks/useAuth'
 import Layout from '../components/common/Layout'
+import PageTitle from '../components/common/PageTitle'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import ResourceModal from '../components/resources/ResourceModal'
 import FacilitiesSidebar from '../components/resources/FacilitiesSidebar'
@@ -180,9 +181,8 @@ const ResourceListRow = ({ resource: res, isAdmin, onEdit, onDelete, formatTime,
         {formatTime(res.availabilityStart)} – {formatTime(res.availabilityEnd)}
       </span>
 
-      <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ring-1 shrink-0 ${
-        isActive ? 'bg-primary-50 text-primary-700 ring-primary-100' : 'bg-red-50 text-red-600 ring-red-100'
-      }`}>
+      <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ring-1 shrink-0 ${isActive ? 'bg-primary-50 text-primary-700 ring-primary-100' : 'bg-red-50 text-red-600 ring-red-100'
+        }`}>
         <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-primary-500' : 'bg-red-500'}`} />
         {isActive ? 'Active' : 'Maint.'}
       </span>
@@ -243,7 +243,7 @@ const ResourcesPage = () => {
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState('grid')
   const [confirmId, setConfirmId] = useState(null)
-  
+
   // NEW STATE: For Hero Carousel
   const [currentSlide, setCurrentSlide] = useState(0)
 
@@ -254,25 +254,21 @@ const ResourcesPage = () => {
   const fetchResources = useCallback(async (currentFilters = null) => {
     setLoading(true)
     try {
-      const activeFilters = currentFilters || filters
-      const cleanFilters = Object.fromEntries(Object.entries(activeFilters).filter(([_, v]) => v !== ''))
-      const data = Object.keys(cleanFilters).length > 0
-        ? await searchResources(cleanFilters)
-        : await getAllResources()
+      // Fetch resources here (example, adjust as needed)
+      const data = await getAllResources()
       setResources(data)
-    } catch {
-      toast.error('Failed to load resources')
+    } catch (err) {
+      toast.error('Failed to fetch resources')
     } finally {
       setLoading(false)
     }
-  }, [filters])
-
-  useEffect(() => {
-    fetchResources()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Auto slide effect (5 seconds)
+  useEffect(() => {
+    fetchResources()
+  }, [fetchResources])
+
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev === 2 ? 0 : prev + 1))
@@ -351,12 +347,12 @@ const ResourcesPage = () => {
   const prevSlide = () => setCurrentSlide((prev) => (prev === 0 ? 2 : prev - 1))
 
   return (
-    <Layout>
-      <div className="w-[100vw] relative left-1/2 -ml-[50vw] min-h-[calc(100vh-64px)] -mt-8 bg-slate-50 flex flex-col lg:flex-row overflow-x-hidden">
-        
+    <Layout fullWidth noPadding>
+      <div className="flex flex-col lg:flex-row min-h-[calc(100vh-64px)] bg-slate-50">
+
         {/* Sidebar - Flush Left and starts exactly at top edge */}
         <div className="w-full lg:w-[260px] shrink-0 bg-white border-r border-slate-200 z-30 shadow-sm relative pt-4">
-          <div className="sticky top-0 h-screen overflow-y-auto">
+          <div className="sticky top-0 h-[calc(100vh-64px)] overflow-y-auto">
             <FacilitiesSidebar />
           </div>
         </div>
@@ -366,13 +362,13 @@ const ResourcesPage = () => {
 
           {/* Banner - Full Width. Added negative margin top to ensure it touches navbar if needed */}
           <div className="relative w-full h-[340px] overflow-hidden shadow-md group bg-slate-900 border-b border-slate-200/60">
-            
+
             {/* Inner Sliding Track */}
-            <div 
+            <div
               className="flex w-full h-full transition-transform duration-500 ease-in-out"
               style={{ transform: `translateX(-${currentSlide * 100}%)` }}
             >
-              
+
               {/* SLIDE 1: The "Resource Hub" Transparent Primary-Themed Screen */}
               <div className="min-w-full h-full relative bg-transparent bg-gradient-to-r from-primary-900/90 via-slate-900/90 to-primary-900/80 flex flex-col items-center justify-center text-center px-4">
                 {/* Tiny top badge */}
@@ -384,7 +380,7 @@ const ResourcesPage = () => {
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-4">
                   Facility <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-primary-200">Hub</span>
                 </h1>
-                
+
                 <p className="text-slate-300 text-sm md:text-base max-w-xl mx-auto leading-relaxed mb-8">
                   Discover lecture halls, computer labs, event spaces and specialized equipment — curated for students and managed by campus admins.
                 </p>
@@ -434,15 +430,15 @@ const ResourcesPage = () => {
             </div>
 
             {/* Left/Right Navigation Arrows (Skill Nest Style) */}
-            <button 
-              onClick={prevSlide} 
+            <button
+              onClick={prevSlide}
               className="absolute left-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/20 hover:bg-black/40 border border-white/10 text-white flex items-center justify-center backdrop-blur-md transition-colors opacity-0 group-hover:opacity-100"
             >
               <svg className="w-5 h-5 pr-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </button>
-            
-            <button 
-              onClick={nextSlide} 
+
+            <button
+              onClick={nextSlide}
               className="absolute right-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/20 hover:bg-black/40 border border-white/10 text-white flex items-center justify-center backdrop-blur-md transition-colors opacity-0 group-hover:opacity-100"
             >
               <svg className="w-5 h-5 pl-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
@@ -451,8 +447,8 @@ const ResourcesPage = () => {
             {/* Bottom Dot Indicators */}
             <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-30 flex gap-2">
               {[0, 1, 2].map((idx) => (
-                <button 
-                  key={idx} 
+                <button
+                  key={idx}
                   onClick={() => setCurrentSlide(idx)}
                   className={`h-1.5 rounded-full transition-all duration-300 ${currentSlide === idx ? 'w-6 bg-white' : 'w-1.5 bg-white/40 hover:bg-white/60'}`}
                 />

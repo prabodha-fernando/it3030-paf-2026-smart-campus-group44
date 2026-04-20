@@ -2,16 +2,19 @@ import { useState, useRef, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth'
 import NotificationBell from '../notifications/NotificationBell'
-import { getRoleLabel, getRoleBadgeClass, getInitials } from '../../utils/roleUtils'
 import { logout } from '../../api/authApi'
+import { getRoleLabel, getRoleBadgeClass, getInitials } from '../../utils/roleUtils'
 import toast from 'react-hot-toast'
+import { getRefreshToken } from '../../utils/authStorage'
 
-const Navbar = () => {
+const Navbar = ({ fullWidth = false }) => {
   const { user, logoutUser, isAdmin } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [avatarLoadFailed, setAvatarLoadFailed] = useState(false)
   const menuRef = useRef(null)
+
 
   useEffect(() => {
     const handler = (e) => {
@@ -21,19 +24,25 @@ const Navbar = () => {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
+  useEffect(() => {
+    setAvatarLoadFailed(false)
+  }, [user?.photoUrl])
+
   const handleLogout = async () => {
-    const refreshToken = localStorage.getItem('refreshToken')
+    const refreshToken = getRefreshToken()
     try { await logout(refreshToken) } catch { /* silent */ }
     logoutUser()
     navigate('/login')
     toast.success('Signed out successfully')
   }
 
+
+
   const navLinks = [
-    { label: 'Dashboard',  to: '/dashboard' },
-    { label: 'Resources',  to: '/resources' },
-    { label: 'Bookings',   to: '/bookings' },
-    { label: 'Tickets',    to: '/tickets' },
+    { label: 'Dashboard', to: '/dashboard' },
+    { label: 'Resources', to: '/resources' },
+    { label: 'Bookings', to: '/bookings' },
+    { label: 'Tickets', to: '/tickets' },
     ...(isAdmin ? [{ label: 'Users', to: '/admin/users' }] : []),
   ]
 
@@ -41,7 +50,7 @@ const Navbar = () => {
 
   return (
     <nav className="bg-slate-900 border-b border-slate-800 sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className={`${fullWidth ? 'w-full px-4' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'}`}>
         <div className="flex items-center justify-between h-16">
 
           {/* Logo */}
@@ -60,11 +69,10 @@ const Navbar = () => {
               <Link
                 key={link.to}
                 to={link.to}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  isActive(link.to)
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${isActive(link.to)
                     ? 'text-primary-400 bg-slate-800'
                     : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                }`}
+                  }`}
               >
                 {link.label}
               </Link>
@@ -81,9 +89,13 @@ const Navbar = () => {
                 onClick={() => setMenuOpen(!menuOpen)}
                 className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-slate-800 transition-colors"
               >
-                {user?.photoUrl ? (
-                  <img src={user.photoUrl} alt={user.displayName}
-                    className="w-7 h-7 rounded-full object-cover ring-2 ring-primary-600" />
+                {user?.photoUrl && !avatarLoadFailed ? (
+                  <img
+                    src={user.photoUrl}
+                    alt={user.displayName}
+                    className="w-7 h-7 rounded-full object-cover ring-2 ring-primary-600"
+                    onError={() => setAvatarLoadFailed(true)}
+                  />
                 ) : (
                   <div className="w-7 h-7 rounded-full bg-primary-600 flex items-center justify-center text-white text-xs font-semibold">
                     {getInitials(user?.displayName)}

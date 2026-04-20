@@ -1,18 +1,8 @@
-import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import useAuth from '../hooks/useAuth'
 import { API_BASE } from '../utils/constants'
 
 const GOOGLE_LOGIN_URL = `${API_BASE}/oauth2/authorization/google`
 
 const LoginPage = () => {
-  const { isAuthenticated } = useAuth()
-  const navigate = useNavigate()
-
-  useEffect(() => {
-    if (isAuthenticated) navigate('/dashboard', { replace: true })
-  }, [isAuthenticated, navigate])
-
   const errorMsg = new URLSearchParams(window.location.search).get('error')
 
   return (
@@ -104,7 +94,7 @@ const LoginPage = () => {
           </a>
 
           <p className="text-xs text-stone-400 text-center mt-5">
-            University accounts only — @my.sliit.lk
+            University accounts only — @gmail.com
           </p>
 
           {/* Features list */}

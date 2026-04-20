@@ -11,11 +11,12 @@ const NotificationDrawer = () => {
   const [activeTab, setActiveTab] = useState('All')
 
   const filtered = notifications.filter((n) => {
+    const category = n.category?.toUpperCase() || ''
     if (activeTab === 'All')      return true
     if (activeTab === 'Unread')   return !n.read
-    if (activeTab === 'Bookings') return n.category === 'BOOKING'
-    if (activeTab === 'Tickets')  return n.category === 'TICKET'
-    if (activeTab === 'Comments') return n.category === 'COMMENT'
+    if (activeTab === 'Bookings') return category === 'BOOKING'
+    if (activeTab === 'Tickets')  return category === 'TICKET'
+    if (activeTab === 'Comments') return category === 'COMMENT'
     return true
   })
 

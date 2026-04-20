@@ -13,6 +13,7 @@ import com.smartcampus.repository.NotifPreferenceRepository;
 import com.smartcampus.repository.NotificationRepository;
 import com.smartcampus.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class NotificationService {
 
@@ -89,11 +91,16 @@ public class NotificationService {
 
     @EventListener
     public void handleRoleChanged(RoleChangedEvent event) {
-        createAndSend(event.getUserId(),
-                "Your role has been updated",
-                "Your role has been changed to " + event.getNewRole() + ".",
-                NotifCategory.ROLE_REQUEST, NotifPriority.HIGH,
-                null, null);
+                try {
+                        createAndSend(event.getUserId(),
+                                        "Your role has been updated",
+                                        "Your role has been changed to " + event.getNewRole() + ".",
+                                        NotifCategory.ROLE_REQUEST, NotifPriority.HIGH,
+                                        null, null);
+                } catch (Exception ex) {
+                        // Do not break role changes when notification publishing fails.
+                        log.error("Failed to send role-changed notification for user {}", event.getUserId(), ex);
+                }
     }
 
     @Transactional

@@ -49,5 +49,12 @@ public class UserController {
         return ResponseEntity.ok(userService.changeRole(id, request));
     }
 
+    @PatchMapping("/me/role")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<UserDto> changeMyRole(
+            @Valid @RequestBody ChangeRoleRequest request) {
+        return ResponseEntity.ok(userService.changeMyRole(request));
+    }
+
     
 }

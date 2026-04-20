@@ -1,5 +1,7 @@
 import Layout from '../components/common/Layout'
+import PageTitle from '../components/common/PageTitle'
 import useAuth from '../hooks/useAuth'
+import useDashboardStats from '../hooks/useDashboardStats'
 import { Link } from 'react-router-dom'
 import { getRoleBadgeClass, getRoleLabel } from '../utils/roleUtils'
 
@@ -15,16 +17,21 @@ const QuickAction = ({ to, icon, label, desc, color }) => (
 
 const DashboardPage = () => {
   const { user, isAdmin } = useAuth()
+  const { stats, loading: statsLoading, error: statsError } = useDashboardStats()
+  const hour = new Date().getHours()
+  const greeting = hour < 5 ? 'Good night' : hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : hour < 22 ? 'Good evening' : 'Good night'
+  const firstName = user?.displayName?.split(' ')[0] || 'there'
 
   return (
     <Layout>
+      <PageTitle title="Dashboard" />
       <div className="space-y-6">
 
         {/* Welcome */}
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-xl font-semibold text-stone-900">
-              Good morning, {user?.displayName?.split(' ')[0]} 👋
+              {greeting}, {firstName} 👋
             </h1>
             <p className="text-sm text-stone-500 mt-0.5">Here's what's happening on campus today.</p>
           </div>
@@ -35,17 +42,32 @@ const DashboardPage = () => {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { label: 'My bookings', value: '3', color: 'text-primary-600', bg: 'bg-primary-50' },
-            { label: 'Pending approval', value: '1', color: 'text-accent-600', bg: 'bg-accent-50' },
-            { label: 'Open tickets', value: '2', color: 'text-blue-600', bg: 'bg-blue-50' },
-            { label: 'Notifications', value: '4', color: 'text-stone-600', bg: 'bg-stone-50' },
-          ].map((stat) => (
-            <div key={stat.label} className={`card ${stat.bg} border-0`}>
-              <p className={`text-2xl font-semibold ${stat.color}`}>{stat.value}</p>
-              <p className="text-xs text-stone-500 mt-1">{stat.label}</p>
+          {statsLoading ? (
+            // Loading skeleton
+            Array(4).fill(0).map((_, i) => (
+              <div key={i} className="card bg-stone-50 border-0 animate-pulse">
+                <div className="h-8 bg-stone-200 rounded mb-2"></div>
+                <div className="h-4 bg-stone-200 rounded"></div>
+              </div>
+            ))
+          ) : statsError ? (
+            // Error state
+            <div className="col-span-full card bg-red-50 border-red-200">
+              <p className="text-red-600 text-sm">Failed to load dashboard stats</p>
             </div>
-          ))}
+          ) : (
+            [
+              { label: 'My bookings', value: stats.myBookings, color: 'text-primary-600', bg: 'bg-primary-50' },
+              { label: 'Pending approval', value: stats.pendingApproval, color: 'text-accent-600', bg: 'bg-accent-50' },
+              { label: 'Open tickets', value: stats.openTickets, color: 'text-blue-600', bg: 'bg-blue-50' },
+              { label: 'Notifications', value: stats.notifications, color: 'text-stone-600', bg: 'bg-stone-50' },
+            ].map((stat) => (
+              <div key={stat.label} className={`card ${stat.bg} border-0`}>
+                <p className={`text-2xl font-semibold ${stat.color}`}>{stat.value}</p>
+                <p className="text-xs text-stone-500 mt-1">{stat.label}</p>
+              </div>
+            ))
+          )}
         </div>
 
         {/* Quick actions */}

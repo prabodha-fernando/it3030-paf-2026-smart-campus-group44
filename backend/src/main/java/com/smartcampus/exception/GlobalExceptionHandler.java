@@ -57,9 +57,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleValidation(
             MethodArgumentNotValidException ex, HttpServletRequest request) {
         Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error -> 
-            errors.put(error.getField(), error.getDefaultMessage())
-        );
+        ex.getBindingResult().getFieldErrors()
+                .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiError.builder()
                         .status(400)
@@ -86,16 +85,16 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleGeneral(
             Exception ex, HttpServletRequest request) {
         // Log the error so you can see the stack trace in your terminal
-        ex.printStackTrace(); 
-    
+        ex.printStackTrace();
+
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(ApiError.builder()
-                    .status(500)
-                    .error("Internal Server Error")
-                    // Adding ex.getMessage() helps you debug faster on port 5174
-                    .message("An unexpected error occurred: " + ex.getMessage()) 
-                    .path(request.getRequestURI())
-                    .build());
+                .body(ApiError.builder()
+                        .status(500)
+                        .error("Internal Server Error")
+                        // Adding ex.getMessage() helps you debug faster on port 5174
+                        .message("An unexpected error occurred: " + ex.getMessage())
+                        .path(request.getRequestURI())
+                        .build());
     }
-    
+
 }

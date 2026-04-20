@@ -2,6 +2,9 @@ spring:
   application:
     name: smart-campus
 
+  profiles:
+    default: local
+
   jackson:
     serialization:
       write-dates-as-timestamps: false
@@ -20,10 +23,10 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: update
-    show-sql: false
+    show-sql: true
     properties:
       hibernate:
-        format_sql: true
+        "[format_sql]": true
 
   security:
     oauth2:
@@ -54,5 +57,5 @@ server:
 
 logging:
   level:
-    com.smartcampus: DEBUG
-    org.springframework.security: WARN
+    "[com.smartcampus]": DEBUG
+    "[org.springframework.security]": WARN

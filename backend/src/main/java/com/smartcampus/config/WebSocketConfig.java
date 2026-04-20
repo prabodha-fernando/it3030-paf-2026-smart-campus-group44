@@ -26,12 +26,21 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         
         // 1. Endpoint for clients using SockJS fallback
         registry.addEndpoint("/ws")
-                .setAllowedOrigins(appProperties.getFrontendUrl()) // Explicitly allows React
+                .setAllowedOrigins(
+                        appProperties.getFrontendUrl(),
+                        "http://localhost:5173",
+                        "http://localhost:5174",
+                        "http://127.0.0.1:5173",
+                        "http://127.0.0.1:5174")
                 .withSockJS();
                 
         // 2. Standard WebSocket endpoint 
-        // Some modern React STOMP clients prefer native WebSockets over SockJS.
         registry.addEndpoint("/ws")
-                .setAllowedOrigins(appProperties.getFrontendUrl());
+                .setAllowedOrigins(
+                        appProperties.getFrontendUrl(),
+                        "http://localhost:5173",
+                        "http://localhost:5174",
+                        "http://127.0.0.1:5173",
+                        "http://127.0.0.1:5174");
     }
 }

@@ -57,7 +57,7 @@ public class ResourceService {
     public Resource update(Long id, ResourceRequest request) {
         log.info("Updating resource with ID: {}", id);
         Resource existingResource = getById(id);
-        
+
         existingResource.setName(request.getName());
         existingResource.setType(request.getType());
         existingResource.setCapacity(request.getCapacity());
@@ -91,7 +91,8 @@ public class ResourceService {
     // --- HELPER METHODS ---
 
     /**
-     * Used for Creating/Updating. Throws a 400 Bad Request if the frontend sends an invalid status string.
+     * Used for Creating/Updating. Throws a 400 Bad Request if the frontend sends an
+     * invalid status string.
      */
     private ResourceStatus parseStatusStrict(String statusStr) {
         if (statusStr == null || statusStr.trim().isEmpty()) {
@@ -106,7 +107,8 @@ public class ResourceService {
     }
 
     /**
-     * Used for Searching. Fails silently (returns null) so the search doesn't crash if the query is malformed.
+     * Used for Searching. Fails silently (returns null) so the search doesn't crash
+     * if the query is malformed.
      */
     private ResourceStatus parseStatusLenient(String statusStr) {
         if (statusStr == null || statusStr.trim().isEmpty()) {

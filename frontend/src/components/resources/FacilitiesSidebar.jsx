@@ -4,11 +4,10 @@ import useAuth from '../../hooks/useAuth'
 const SidebarLink = ({ href, icon, label, isActive }) => (
   <Link
     to={href}
-    className={`relative flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all duration-200 ${
-      isActive
+    className={`relative flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all duration-200 ${isActive
         ? 'bg-primary-50 text-primary-700'
         : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
-    }`}
+      }`}
   >
     {/* Active left accent - Flush to the absolute left edge */}
     {isActive && (
@@ -98,7 +97,7 @@ const FacilitiesSidebar = () => {
   return (
     // Changed top padding to push items up closer to the edge, matching Skill Nest
     <div className="pt-6 h-full flex flex-col">
-      
+
       {/* Module Header - Kept identical but adjusted padding/margin */}
       <div className="flex items-center gap-3 px-6 mb-8">
         <div className="w-9 h-9 rounded-xl bg-primary-600 flex items-center justify-center shrink-0 shadow-sm">
