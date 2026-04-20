@@ -350,7 +350,7 @@ const ResourcesPage = () => {
   const prevSlide = () => setCurrentSlide((prev) => (prev === 0 ? 2 : prev - 1))
 
   return (
-    <Layout fullWidth>
+    <Layout fullWidth noPadding>
       <div className="flex flex-col lg:flex-row min-h-[calc(100vh-64px)] bg-slate-50">
 
         {/* Sidebar - Flush Left and starts exactly at top edge */}

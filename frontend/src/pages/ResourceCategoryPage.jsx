@@ -158,8 +158,8 @@ const ResourceCategoryPage = ({ category }) => {
   ]
 
   return (
-    <Layout>
-      <div className="w-[100vw] relative left-1/2 -ml-[50vw] min-h-[calc(100vh-64px)] -mt-8 bg-slate-50 flex flex-col lg:flex-row overflow-x-hidden">
+    <Layout fullWidth noPadding>
+      <div className="flex flex-col lg:flex-row min-h-[calc(100vh-64px)] bg-slate-50">
 
         {/* Sidebar */}
         <div className="w-full lg:w-[260px] shrink-0 bg-white border-r border-slate-200 z-30 shadow-sm relative pt-4">
