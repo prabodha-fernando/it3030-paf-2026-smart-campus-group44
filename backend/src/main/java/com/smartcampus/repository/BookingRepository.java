@@ -14,7 +14,8 @@ import java.time.LocalTime;
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
-    Booking findFirstByOrderByResourceIdDesc();
+        Booking findTopByOrderByIdDesc();
+        boolean existsByResourceId(String resourceId);
 
     Page<Booking> findAllByRequestedBy(User requestedBy, Pageable pageable);
     Page<Booking> findAllByRequestedByAndStatus(User requestedBy,

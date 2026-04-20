@@ -19,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,47 +37,75 @@ public class BookingService {
 
     @Transactional
     public BookingResponseDto createBooking(BookingRequestDto request) {
-        // Auto-generate resource ID if not provided or generate a new one
-        String resourceId = generateResourceId();
+        boolean hasProvidedResourceId = request.getResourceId() != null && !request.getResourceId().isBlank();
 
         validateDateTime(request.getStartTime(), request.getEndTime());
-        checkBookingConflict(resourceId, request.getDate(),
-                request.getStartTime(), request.getEndTime());
-
         User user = authService.getCurrentUser();
-        Booking booking = Booking.builder()
-                .resourceId(resourceId)
-                .resourceName(request.getResourceName())
-                .resourceType(request.getResourceType())
-                .location(request.getLocation())
-                .date(request.getDate())
-                .startTime(request.getStartTime())
-                .endTime(request.getEndTime())
-                .purpose(request.getPurpose())
-                .attendees(request.getAttendees())
-                .status(BookingStatus.PENDING)
-                .requestedBy(user)
-                .build();
 
-        return toDto(bookingRepository.save(booking));
+        for (int attempt = 0; attempt < 3; attempt++) {
+            String resourceId = resolveResourceId(request.getResourceId());
+            checkBookingConflict(resourceId, request.getDate(),
+                    request.getStartTime(), request.getEndTime());
+
+            Booking booking = Booking.builder()
+                    .resourceId(resourceId)
+                    .resourceName(request.getResourceName())
+                    .resourceType(request.getResourceType())
+                    .location(request.getLocation())
+                    .date(request.getDate())
+                    .startTime(request.getStartTime())
+                    .endTime(request.getEndTime())
+                    .purpose(request.getPurpose())
+                    .attendees(request.getAttendees())
+                    .status(BookingStatus.PENDING)
+                    .requestedBy(user)
+                    .build();
+
+            try {
+                return toDto(bookingRepository.save(booking));
+            } catch (DataIntegrityViolationException ex) {
+                if (hasProvidedResourceId) {
+                    throw new BadRequestException("Resource ID already exists. Please choose another resource.");
+                }
+                if (attempt == 2) {
+                    throw new BadRequestException("Could not create booking right now. Please try again.");
+                }
+            }
+        }
+
+        throw new BadRequestException("Could not create booking right now. Please try again.");
+    }
+
+    private String resolveResourceId(String requestedResourceId) {
+        if (requestedResourceId != null && !requestedResourceId.isBlank()) {
+            return requestedResourceId.trim();
+        }
+        return generateResourceId();
     }
 
     private String generateResourceId() {
-        // Generate unique resource ID in format R001, R002, etc.
-        Booking latestBooking = bookingRepository.findFirstByOrderByResourceIdDesc();
-        if (latestBooking == null || latestBooking.getResourceId() == null) {
-            return "R001";
+        int nextNumber = 1;
+        Booking latestBooking = bookingRepository.findTopByOrderByIdDesc();
+
+        if (latestBooking != null && latestBooking.getResourceId() != null) {
+            String numericPart = latestBooking.getResourceId().replaceAll("\\D+", "");
+            if (!numericPart.isEmpty()) {
+                try {
+                    nextNumber = Integer.parseInt(numericPart) + 1;
+                } catch (NumberFormatException ignored) {
+                    nextNumber = (int) bookingRepository.count() + 1;
+                }
+            } else {
+                nextNumber = (int) bookingRepository.count() + 1;
+            }
         }
 
-        String maxResourceId = latestBooking.getResourceId();
-        String numericPart = maxResourceId.replaceAll("^R", "");
-        int nextNumber;
-        try {
-            nextNumber = Integer.parseInt(numericPart) + 1;
-        } catch (NumberFormatException ex) {
-            nextNumber = 1;
-        }
-        return String.format("R%03d", nextNumber);
+        String candidate;
+        do {
+            candidate = String.format("R%03d", nextNumber++);
+        } while (bookingRepository.existsByResourceId(candidate));
+
+        return candidate;
     }
 
     public BookingResponseDto getBooking(Long id) {
