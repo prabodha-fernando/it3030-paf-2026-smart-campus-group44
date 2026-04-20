@@ -258,15 +258,22 @@ const ResourcesPage = () => {
   const fetchResources = useCallback(async (currentFilters = null) => {
     setLoading(true)
     try {
-      // Fetch resources here (example, adjust as needed)
-      const data = await getAllResources()
-      setResources(data)
+      const activeFilters = currentFilters ?? { type: '', location: '', status: '', minCapacity: '' }
+      const hasFilters = Object.values(activeFilters).some((value) => value !== '')
+
+      const data = hasFilters ? await searchResources(activeFilters) : await getAllResources()
+      setResources(Array.isArray(data) ? data : [])
     } catch (err) {
       toast.error('Failed to fetch resources')
+      setResources([])
     } finally {
       setLoading(false)
     }
   }, [])
+
+  useEffect(() => {
+    fetchResources()
+  }, [fetchResources])
 
   // Auto slide effect (5 seconds)
   useEffect(() => {
@@ -283,7 +290,7 @@ const ResourcesPage = () => {
 
   const handleSearch = (e) => {
     e.preventDefault()
-    fetchResources()
+    fetchResources(filters)
   }
 
   const clearSearch = () => {
