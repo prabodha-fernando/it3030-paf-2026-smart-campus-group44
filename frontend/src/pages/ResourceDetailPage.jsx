@@ -236,7 +236,7 @@ const ResourceDetailPage = () => {
                       {/* Primary: Book Now */}
                       {isActive && (
                         <button
-                          onClick={() => navigate(`/bookings?resourceId=${resource.id}`)}
+                          onClick={() => navigate('/bookings', { state: { initialResource: resource } })}
                           className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary-500 hover:bg-primary-400 active:scale-[0.98] text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-primary-900/40"
                         >
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -559,7 +559,7 @@ const ResourceDetailPage = () => {
                           </p>
                         </div>
                         <button
-                          onClick={() => navigate(`/bookings?resourceId=${resource.id}`)}
+                          onClick={() => navigate('/bookings', { state: { initialResource: resource } })}
                           className="flex items-center gap-2.5 px-7 py-3.5 bg-white hover:bg-primary-50 active:scale-[0.98] text-primary-700 font-bold text-sm rounded-xl transition-all shadow-lg shadow-primary-900/20 shrink-0"
                         >
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

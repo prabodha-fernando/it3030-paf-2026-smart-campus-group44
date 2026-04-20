@@ -27,9 +27,9 @@ public class NotificationController {
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<NotificationDto>> getMyNotifications(
-            @RequestParam(defaultValue = "0")  int page,
+            @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        
+
         log.debug("Fetching notifications for user (page: {}, size: {})", page, size);
         return ResponseEntity.ok(notificationService.getMyNotifications(page, size));
     }
@@ -38,9 +38,10 @@ public class NotificationController {
     @GetMapping("/unread-count")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Long>> getUnreadCount() {
-        
+
         log.debug("Fetching unread notification count");
-        // CRITICAL FIX: Wrap the Long in a Map so React receives valid JSON -> { "count": 5 }
+        // CRITICAL FIX: Wrap the Long in a Map so React receives valid JSON -> {
+        // "count": 5 }
         Long count = notificationService.getUnreadCount();
         return ResponseEntity.ok(Map.of("count", count));
     }
@@ -49,7 +50,7 @@ public class NotificationController {
     @PatchMapping("/{id}/read")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<NotificationDto> markAsRead(@PathVariable Long id) {
-        
+
         log.info("Marking notification ID {} as read", id);
         return ResponseEntity.ok(notificationService.markAsRead(id));
     }
@@ -58,7 +59,7 @@ public class NotificationController {
     @PatchMapping("/read-all")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> markAllAsRead() {
-        
+
         log.info("Marking all notifications as read for current user");
         notificationService.markAllAsRead();
         return ResponseEntity.noContent().build();
@@ -68,7 +69,7 @@ public class NotificationController {
     @DeleteMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> deleteNotification(@PathVariable Long id) {
-        
+
         log.info("Deleting notification ID {}", id);
         notificationService.deleteNotification(id);
         return ResponseEntity.noContent().build();
@@ -78,7 +79,7 @@ public class NotificationController {
     @GetMapping("/preferences")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<NotifPreferenceDto> getPreferences() {
-        
+
         log.debug("Fetching notification preferences");
         return ResponseEntity.ok(notificationService.getPreferences());
     }
@@ -88,7 +89,7 @@ public class NotificationController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<NotifPreferenceDto> updatePreferences(
             @RequestBody NotifPreferenceDto request) {
-        
+
         log.info("Updating notification preferences");
         return ResponseEntity.ok(notificationService.updatePreferences(request));
     }

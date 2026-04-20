@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { startOfToday } from 'date-fns'
 import toast from 'react-hot-toast'
 import Layout from '../components/common/Layout'
+import PageTitle from '../components/common/PageTitle'
 import BookingForm from '../components/bookings/BookingForm'
 import BookingList from '../components/bookings/BookingList'
 import CalendarView from '../components/bookings/CalendarView'
@@ -55,6 +57,9 @@ const BookingsPage = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [refreshKey, setRefreshKey] = useState(0)
   const [view, setView] = useState('list') // 'list' or 'calendar'
+  const location = useLocation()
+  const navigate = useNavigate()
+  const [initialFormData, setInitialFormData] = useState(null)
 
   const loadBookings = async () => {
     setLoading(true)
@@ -71,6 +76,18 @@ const BookingsPage = () => {
   }
 
   useEffect(() => { loadBookings() }, [statusFilter, refreshKey])
+
+  useEffect(() => {
+    if (location.state?.initialResource) {
+      const res = location.state.initialResource
+      setInitialFormData({
+        resourceName: res.name,
+        resourceType: res.type,
+        location: res.location
+      })
+      setShowBookingForm(true)
+    }
+  }, [location])
 
   const sortedBookings = useMemo(() => {
     const today = startOfToday()
@@ -117,6 +134,11 @@ const BookingsPage = () => {
 
   const handleFormClose = () => {
     setShowBookingForm(false)
+    setInitialFormData(null)
+    // Clear location state so modal doesn't re-open on refresh
+    if (location.state?.initialResource) {
+      navigate(location.pathname, { replace: true, state: {} })
+    }
   }
 
   const handleFormSubmit = async (payload) => {
@@ -171,6 +193,7 @@ const BookingsPage = () => {
 
   return (
     <Layout>
+      <PageTitle title="Browse Bookings" />
       <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
         {/* Sidebar */}
         <aside className="space-y-4">
@@ -316,7 +339,12 @@ const BookingsPage = () => {
               </button>
             </div>
             <div className="p-6">
-              <BookingForm onSubmit={handleFormSubmit} loading={submitting} isModal />
+              <BookingForm 
+                onSubmit={handleFormSubmit} 
+                loading={submitting} 
+                isModal 
+                initialData={initialFormData}
+              />
             </div>
           </div>
         </div>

@@ -7,6 +7,7 @@ import useWebSocket from './hooks/useWebSocket';
 import useAuth from './hooks/useAuth';
 
 // Pages
+import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import OAuthCallbackPage from './pages/OAuthCallbackPage';
 import OnboardingPage from './pages/OnboardingPage';
@@ -26,7 +27,7 @@ const AppContent = () => {
   const { user, loading, isAuthenticated } = useAuth();
 
   // Initialize WebSocket connection when authenticated
-  useWebSocket(isAuthenticated ? user?.id : null);
+  useWebSocket(isAuthenticated ? user?.email : null);
 
   if (loading) {
     return (
@@ -41,9 +42,12 @@ const AppContent = () => {
       {isAuthenticated && <NotificationDrawer />}
       <div className="min-h-screen bg-slate-50">
         <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<HomePage />} />
           <Route path="/login" element={!isAuthenticated ? <LoginPage /> : <Navigate to="/dashboard" />} />
           <Route path="/auth/callback" element={<OAuthCallbackPage />} />
 
+          {/* Protected Routes */}
           <Route element={<PrivateRoute />}>
             <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
@@ -58,18 +62,19 @@ const AppContent = () => {
             <Route path="/resources/equipment" element={<ResourceCategoryPage category="equipment" />} />
             <Route path="/resources/contact" element={<ContactFacilitiesPage />} />
             <Route path="/resources/:id" element={<ResourceDetailPage />} />
-
             <Route path="/resources/manage" element={<AdminResourcesPage />} />
+
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/profile/notifications" element={<ProfilePage />} />
           </Route>
 
+          {/* Admin Routes */}
           <Route element={<PrivateRoute allowedRoles={['ADMIN', 'SUPER_ADMIN']} />}>
             <Route path="/admin/users" element={<AdminUsersPage />} />
           </Route>
 
-          <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          {/* Fallback Routes */}
+          <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} replace />} />
         </Routes>
       </div>
     </>
@@ -78,8 +83,8 @@ const AppContent = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <Toaster
           position="top-right"
           toastOptions={{
@@ -96,8 +101,8 @@ function App() {
           }}
         />
         <AppContent />
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 

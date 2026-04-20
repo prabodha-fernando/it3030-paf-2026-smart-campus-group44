@@ -91,9 +91,9 @@ public class BookingService {
     }
 
     public Page<BookingResponseDto> listBookings(Optional<BookingStatus> status,
-                                                 Optional<String> resourceId,
-                                                 int page,
-                                                 int size) {
+            Optional<String> resourceId,
+            int page,
+            int size) {
         User currentUser = authService.getCurrentUser();
         Pageable pageable = PageRequest.of(page, size,
                 Sort.by(Sort.Order.desc("date"), Sort.Order.asc("startTime")));
@@ -224,7 +224,7 @@ public class BookingService {
     }
 
     public Page<CalendarEventDto> getCalendarEvents(LocalDate startDate, LocalDate endDate,
-                                                   Optional<BookingStatus> status, int page, int size) {
+            Optional<BookingStatus> status, int page, int size) {
         User currentUser = authService.getCurrentUser();
         Pageable pageable = PageRequest.of(page, size);
 
@@ -236,11 +236,14 @@ public class BookingService {
                 bookings = bookingRepository.findAllByDateBetween(startDate, endDate, pageable);
             }
         } else {
-            // For regular users, only show their own bookings with proper date range filtering
+            // For regular users, only show their own bookings with proper date range
+            // filtering
             if (status.isPresent()) {
-                bookings = bookingRepository.findAllByRequestedByAndDateBetweenAndStatus(currentUser, startDate, endDate, status.get(), pageable);
+                bookings = bookingRepository.findAllByRequestedByAndDateBetweenAndStatus(currentUser, startDate,
+                        endDate, status.get(), pageable);
             } else {
-                bookings = bookingRepository.findAllByRequestedByAndDateBetween(currentUser, startDate, endDate, pageable);
+                bookings = bookingRepository.findAllByRequestedByAndDateBetween(currentUser, startDate, endDate,
+                        pageable);
             }
         }
 
@@ -263,7 +266,7 @@ public class BookingService {
     }
 
     private void checkBookingConflict(String resourceId, LocalDate date,
-                                      LocalTime startTime, LocalTime endTime) {
+            LocalTime startTime, LocalTime endTime) {
         boolean conflict = bookingRepository
                 .existsByResourceIdAndStatusAndDateAndStartTimeLessThanAndEndTimeGreaterThan(
                         resourceId,
@@ -296,6 +299,7 @@ public class BookingService {
                 .updatedAt(booking.getUpdatedAt())
                 .build();
     }
+
     private CalendarEventDto toCalendarEventDto(Booking booking) {
         User currentUser = authService.getCurrentUser();
         boolean canModify = booking.getRequestedBy().getId().equals(currentUser.getId()) || isAdmin(currentUser);
@@ -315,6 +319,7 @@ public class BookingService {
                 .canModify(canModify)
                 .build();
     }
+
     private boolean isAdmin(User user) {
         return user.getRole() == Role.ADMIN || user.getRole() == Role.SUPER_ADMIN;
     }

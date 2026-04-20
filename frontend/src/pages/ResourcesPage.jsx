@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import useAuth from '../hooks/useAuth'
 import Layout from '../components/common/Layout'
+import PageTitle from '../components/common/PageTitle'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import ResourceModal from '../components/resources/ResourceModal'
 import FacilitiesSidebar from '../components/resources/FacilitiesSidebar'
@@ -253,25 +254,21 @@ const ResourcesPage = () => {
   const fetchResources = useCallback(async (currentFilters = null) => {
     setLoading(true)
     try {
-      const activeFilters = currentFilters || filters
-      const cleanFilters = Object.fromEntries(Object.entries(activeFilters).filter(([_, v]) => v !== ''))
-      const data = Object.keys(cleanFilters).length > 0
-        ? await searchResources(cleanFilters)
-        : await getAllResources()
+      // Fetch resources here (example, adjust as needed)
+      const data = await getAllResources()
       setResources(data)
-    } catch {
-      toast.error('Failed to load resources')
+    } catch (err) {
+      toast.error('Failed to fetch resources')
     } finally {
       setLoading(false)
     }
-  }, [filters])
-
-  useEffect(() => {
-    fetchResources()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Auto slide effect (5 seconds)
+  useEffect(() => {
+    fetchResources()
+  }, [fetchResources])
+
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev === 2 ? 0 : prev + 1))

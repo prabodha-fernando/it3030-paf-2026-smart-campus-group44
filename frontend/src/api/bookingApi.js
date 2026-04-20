@@ -3,6 +3,12 @@ import axiosInstance from './axiosInstance'
 export const getBookings = (params) =>
   axiosInstance.get('/api/v1/bookings', { params })
 
+export const getMyBookings = (params) =>
+  axiosInstance.get('/api/v1/bookings/my', { params })
+
+export const getBookingsPendingApproval = (params) =>
+  axiosInstance.get('/api/v1/bookings/pending-approval', { params })
+
 export const createBooking = (data) =>
   axiosInstance.post('/api/v1/bookings', data)
 

@@ -18,7 +18,7 @@ const useNotifications = () => {
           getUnreadCount(),
         ])
         store.setNotifications(notifRes.data.content || [])
-        store.setUnreadCount(countRes.data || 0)
+        store.setUnreadCount(countRes.data?.count ?? 0)
       } catch { /* silent */ }
     }
     load()

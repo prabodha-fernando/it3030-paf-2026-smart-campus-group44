@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import Layout from '../components/common/Layout'
+import PageTitle from '../components/common/PageTitle'
 import useAuth from '../hooks/useAuth'
 import { API_BASE } from '../utils/constants'
 import { getRoleBadgeClass, getRoleLabel } from '../utils/roleUtils'
@@ -114,9 +115,8 @@ const TicketsPage = () => {
         return
       }
       setResources(list)
-    } catch (err) {
-      setResources([])
-      const status = err?.response?.status
+    } catch (error) {
+      const status = error?.response?.status
       if (status === 401) {
         setResourceLoadError('Session expired. Please re-login.')
       } else {
@@ -726,6 +726,17 @@ const TicketsPage = () => {
     return matched.name
   }, [resources, selectedTicket])
 
+  const selectedTicketAssignedLabel = useMemo(() => {
+    const assignee = selectedTicket?.assignedTo
+    if (!assignee) return 'Not assigned yet'
+
+    const role = String(assignee.role || '').toUpperCase()
+    const isAssignableStaff = ['TECHNICIAN', 'SECURITY_OFFICER', 'FACILITY_MANAGER'].includes(role)
+    if (!isAssignableStaff) return 'Not assigned yet'
+
+    return assignee.displayName || assignee.email || 'Not assigned yet'
+  }, [selectedTicket])
+
   const adminUpdateImages = useMemo(() => {
     const hasRoleMetadata = attachments.some((a) => a?.uploadedBy?.role)
     if (!hasRoleMetadata) return attachments
@@ -741,6 +752,7 @@ const TicketsPage = () => {
 
   return (
     <Layout>
+      <PageTitle title="Browse Tickets" />
       <div className="space-y-6">
         <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
@@ -1136,7 +1148,7 @@ const TicketsPage = () => {
                     </div>
                     <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
                       <p className="text-xs text-stone-500">Assigned</p>
-                      <p className="truncate text-sm font-medium text-stone-800">{selectedTicket.assignedTo?.displayName || 'Not assigned yet'}</p>
+                      <p className="truncate text-sm font-medium text-stone-800">{selectedTicketAssignedLabel}</p>
                     </div>
                     <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
                       <p className="text-xs text-stone-500">Location</p>

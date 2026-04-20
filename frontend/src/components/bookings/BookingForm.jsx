@@ -1,15 +1,15 @@
 import { useState } from 'react'
 
-const BookingForm = ({ onSubmit, loading, isModal = false }) => {
+const BookingForm = ({ onSubmit, loading, isModal = false, initialData = null }) => {
   const [form, setForm] = useState({
-    resourceName: '',
-    resourceType: '',
-    location: '',
-    date: '',
-    startTime: '',
-    endTime: '',
-    purpose: '',
-    attendees: '',
+    resourceName: initialData?.resourceName || '',
+    resourceType: initialData?.resourceType || '',
+    location:     initialData?.location     || '',
+    date:         initialData?.date         || '',
+    startTime:    initialData?.startTime    || '',
+    endTime:      initialData?.endTime      || '',
+    purpose:      '',
+    attendees:    '',
   })
 
   // Get today's date in YYYY-MM-DD format for min date validation
