@@ -19,7 +19,7 @@ const useDashboardStats = () => {
       setError(null)
 
       // Fetch all stats in parallel
-      const [bookingsRes, pendingRes, ticketsRes, openTicketsRes, notificationsRes] = await Promise.allSettled([
+      const [bookingsRes, pendingRes, , openTicketsRes, notificationsRes] = await Promise.allSettled([
         getMyBookings({ size: 1 }), // Just get count
         getBookingsPendingApproval({ size: 1 }),
         getMyTickets({ size: 1 }),

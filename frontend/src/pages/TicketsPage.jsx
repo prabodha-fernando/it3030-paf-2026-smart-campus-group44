@@ -67,7 +67,7 @@ const TicketsPage = () => {
   const createFileInputRef = useRef(null)
   const ticketAttachmentInputRef = useRef(null)
   const detailFileInputRef = useRef(null)
-  const editFileInputRef = useRef(null)
+  // const editFileInputRef = useRef(null)
 
   const [newComment, setNewComment] = useState('')
   const [editingCommentId, setEditingCommentId] = useState(null)
@@ -80,6 +80,7 @@ const TicketsPage = () => {
   const [resolutionDraft, setResolutionDraft] = useState('')
   const [isEditingTicket, setIsEditingTicket] = useState(false)
   const [editAttachmentFile, setEditAttachmentFile] = useState(null)
+  // eslint-disable-next-line no-unused-vars
   const [editAttachmentFileName, setEditAttachmentFileName] = useState('No file chosen')
   const [editRemovedAttachmentIds, setEditRemovedAttachmentIds] = useState([])
   const [editTicketForm, setEditTicketForm] = useState({
@@ -216,6 +217,7 @@ const TicketsPage = () => {
     }
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadTickets(false) }, [])
 
   useEffect(() => { loadDetail(selectedId) }, [selectedId])
@@ -359,6 +361,7 @@ const TicketsPage = () => {
     }
   }
 
+  /*
   const handleStatusUpdate = async (status) => {
     if (!selectedTicket) return
 
@@ -386,6 +389,7 @@ const TicketsPage = () => {
       toast.error(err?.response?.data?.message || 'Failed to update status')
     }
   }
+  */
 
   const handleSaveTicketEdit = async () => {
     if (!selectedTicket) return
@@ -679,6 +683,7 @@ const TicketsPage = () => {
     }
   }
 
+  /*
   const [isEditingResolution, setIsEditingResolution] = useState(false)
 
   const handleSaveResolutionNotes = async () => {
@@ -709,15 +714,18 @@ const TicketsPage = () => {
     ['TECHNICIAN', 'SECURITY_OFFICER', 'FACILITY_MANAGER', 'ADMIN', 'SUPER_ADMIN']
       .includes(String(user?.role || '').toUpperCase())
   )
+  */
 
   const canManageTicket = !!selectedTicket && (
     isAdmin || String(selectedTicket.user?.id || '') === String(user?.id || '')
   )
 
+  /*
   const canEditResolutionNotes = !!selectedTicket && (
     ['TECHNICIAN', 'SECURITY_OFFICER', 'FACILITY_MANAGER', 'ADMIN', 'SUPER_ADMIN']
       .includes(String(user?.role || '').toUpperCase())
   )
+  */
 
   const selectedTicketResourceLabel = useMemo(() => {
     if (!selectedTicket?.resourceId) return 'Not linked'
@@ -1386,61 +1394,61 @@ const TicketsPage = () => {
                 )}
 
                 <div className="space-y-2 rounded-xl border border-stone-200 p-3">
-                    <h3 className="text-sm font-semibold text-stone-800">Comments</h3>
-                    <div className="max-h-56 space-y-2 overflow-y-auto pr-1">
-                      {comments.length === 0 && <p className="text-sm text-stone-400">No comments yet.</p>}
-                      {comments.map((c) => (
-                        <div key={c.id} className="rounded-lg bg-stone-50 p-2.5">
-                          <div className="flex items-center gap-2">
-                            <p className="text-xs text-stone-500">{c.author?.displayName || c.author?.email || 'User'}</p>
-                            {(() => {
-                              const role = String(c.author?.role || 'USER').trim().toUpperCase()
-                              return (
-                                <span className={`rounded px-2 py-0.5 text-[10px] font-medium ${getRoleBadgeClass(role)}`}>
-                                  {getRoleLabel(role)}
-                                </span>
-                              )
-                            })()}
-                          </div>
-                          {editingCommentId === c.id ? (
-                            <div className="mt-1 space-y-2">
-                              <input
-                                className="input-field"
-                                value={editingCommentText}
-                                onChange={(e) => setEditingCommentText(e.target.value)}
-                              />
-                              <div className="flex gap-2">
-                                <button className="btn-secondary" onClick={handleEditComment}>Save</button>
-                                <button className="btn-secondary" onClick={cancelEditComment}>Cancel</button>
-                              </div>
-                            </div>
-                          ) : (
-                            <p className="mt-0.5 text-sm text-stone-800">{c.content}</p>
-                          )}
-
-                          {(isAdmin || String(c.author?.id || '') === String(user?.id || '')) && editingCommentId !== c.id && (
-                            <div className="mt-2 flex gap-2">
-                              <button className="text-xs font-medium text-blue-700 hover:underline" onClick={() => startEditComment(c)}>
-                                Edit
-                              </button>
-                              <button className="text-xs font-medium text-red-700 hover:underline" onClick={() => handleDeleteComment(c.id)}>
-                                Delete
-                              </button>
-                            </div>
-                          )}
+                  <h3 className="text-sm font-semibold text-stone-800">Comments</h3>
+                  <div className="max-h-56 space-y-2 overflow-y-auto pr-1">
+                    {comments.length === 0 && <p className="text-sm text-stone-400">No comments yet.</p>}
+                    {comments.map((c) => (
+                      <div key={c.id} className="rounded-lg bg-stone-50 p-2.5">
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs text-stone-500">{c.author?.displayName || c.author?.email || 'User'}</p>
+                          {(() => {
+                            const role = String(c.author?.role || 'USER').trim().toUpperCase()
+                            return (
+                              <span className={`rounded px-2 py-0.5 text-[10px] font-medium ${getRoleBadgeClass(role)}`}>
+                                {getRoleLabel(role)}
+                              </span>
+                            )
+                          })()}
                         </div>
-                      ))}
-                    </div>
-                    <div className="flex gap-2">
-                      <input
-                        className="input-field"
-                        value={newComment}
-                        onChange={(e) => setNewComment(e.target.value)}
-                        placeholder="Add a comment"
-                      />
-                      <button className="btn-secondary" onClick={handleAddComment}>Post</button>
-                    </div>
+                        {editingCommentId === c.id ? (
+                          <div className="mt-1 space-y-2">
+                            <input
+                              className="input-field"
+                              value={editingCommentText}
+                              onChange={(e) => setEditingCommentText(e.target.value)}
+                            />
+                            <div className="flex gap-2">
+                              <button className="btn-secondary" onClick={handleEditComment}>Save</button>
+                              <button className="btn-secondary" onClick={cancelEditComment}>Cancel</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="mt-0.5 text-sm text-stone-800">{c.content}</p>
+                        )}
+
+                        {(isAdmin || String(c.author?.id || '') === String(user?.id || '')) && editingCommentId !== c.id && (
+                          <div className="mt-2 flex gap-2">
+                            <button className="text-xs font-medium text-blue-700 hover:underline" onClick={() => startEditComment(c)}>
+                              Edit
+                            </button>
+                            <button className="text-xs font-medium text-red-700 hover:underline" onClick={() => handleDeleteComment(c.id)}>
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
+                  <div className="flex gap-2">
+                    <input
+                      className="input-field"
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="Add a comment"
+                    />
+                    <button className="btn-secondary" onClick={handleAddComment}>Post</button>
+                  </div>
+                </div>
               </div>
             )}
           </div>

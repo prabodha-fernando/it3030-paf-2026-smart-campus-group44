@@ -64,8 +64,7 @@ public class ResourceController {
     // Method: POST | URL: /api/resources
     // ========================================================================
     @PostMapping
-    // @PreAuthorize("hasRole('ADMIN')") // TODO: Re-enable this before your final
-    // university submission!
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Resource> create(@Valid @RequestBody ResourceRequest request) {
         log.info("REST request to create new resource: {}", request.getName());
         Resource created = resourceService.create(request);
@@ -77,8 +76,7 @@ public class ResourceController {
     // Method: PUT | URL: /api/resources/{id}
     // ========================================================================
     @PutMapping("/{id}")
-    // @PreAuthorize("hasRole('ADMIN')") // TODO: Re-enable this before your final
-    // university submission!
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Resource> update(@PathVariable Long id, @Valid @RequestBody ResourceRequest request) {
         log.info("REST request to update resource with ID: {}", id);
         return ResponseEntity.ok(resourceService.update(id, request));
@@ -89,8 +87,7 @@ public class ResourceController {
     // Method: DELETE | URL: /api/resources/{id}
     // ========================================================================
     @DeleteMapping("/{id}")
-    // @PreAuthorize("hasRole('ADMIN')") // TODO: Re-enable this before your final
-    // university submission!
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         log.warn("REST request to DELETE resource with ID: {}", id);
         resourceService.delete(id);

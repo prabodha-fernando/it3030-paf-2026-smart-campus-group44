@@ -28,6 +28,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class BookingService {
 
     private final BookingRepository bookingRepository;
@@ -298,6 +299,24 @@ public class BookingService {
                 .createdAt(booking.getCreatedAt())
                 .updatedAt(booking.getUpdatedAt())
                 .build();
+    }
+
+    public Page<BookingResponseDto> getMyBookings(int page, int size) {
+        User currentUser = authService.getCurrentUser();
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "date"));
+        return bookingRepository.findAllByRequestedBy(currentUser, pageable).map(this::toDto);
+    }
+
+    public Page<BookingResponseDto> getBookingsPendingApproval(int page, int size) {
+        User currentUser = authService.getCurrentUser();
+        if (currentUser.getRole() != Role.ADMIN &&
+            currentUser.getRole() != Role.SUPER_ADMIN &&
+            currentUser.getRole() != Role.HOD &&
+            currentUser.getRole() != Role.FACILITY_MANAGER) {
+            throw new org.springframework.security.access.AccessDeniedException("You do not have permission to view pending approvals");
+        }
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "date"));
+        return bookingRepository.findAllByStatus(BookingStatus.PENDING, pageable).map(this::toDto);
     }
 
     private CalendarEventDto toCalendarEventDto(Booking booking) {

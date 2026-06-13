@@ -229,7 +229,11 @@ export default function HomePage() {
     []
   )
 
-  const counters = STATS.map(item => useCounter(item.value, statsVisible))
+  const counter0 = useCounter(STATS[0].value, statsVisible)
+  const counter1 = useCounter(STATS[1].value, statsVisible)
+  const counter2 = useCounter(STATS[2].value, statsVisible)
+  const counter3 = useCounter(STATS[3].value, statsVisible)
+  const counters = [counter0, counter1, counter2, counter3]
   const isVisible = id => visibleSections.has(id)
 
   return (
