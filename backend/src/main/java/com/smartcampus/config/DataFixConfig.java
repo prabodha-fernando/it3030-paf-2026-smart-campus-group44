@@ -15,38 +15,51 @@ public class DataFixConfig {
 
     @PostConstruct
     public void fixInvalidUserIds() {
-        log.info("Starting data fix for uninitialized user IDs in bookings table...");
+        log.info("Starting data fix for uninitialized user IDs...");
+
+        // 1. Fix bookings table
         try {
-            // Attempt to sync user_id from requested_by if requested_by exists
+            // Attempt to sync user_id from requested_by if user_id exists
             // This handles the case where data was previously stored in the old column name
             int updatedRows = jdbcTemplate.update(
                 "UPDATE bookings SET user_id = requested_by WHERE user_id = 0"
             );
-            log.info("Data fix completed. Updated {} rows in bookings table.", updatedRows);
-
-            // Fix notifications table
-            int updatedNotifs = jdbcTemplate.update(
-                "UPDATE notifications SET user_id = 1 WHERE user_id = 0"
-            );
-            if (updatedNotifs > 0) log.info("Repaired {} orphaned notifications.", updatedNotifs);
-
-            // Fix notif_preferences table
-            int updatedPrefs = jdbcTemplate.update(
-                "UPDATE notif_preferences SET user_id = 1 WHERE user_id = 0"
-            );
-            if (updatedPrefs > 0) log.info("Repaired {} orphaned notification preferences.", updatedPrefs);
-
+            log.info("Bookings user_id migration completed. Updated {} rows.", updatedRows);
         } catch (Exception e) {
-            log.warn("Could not copy from requested_by (it might not exist). Trying fallback cleanup...");
+            log.warn("Could not copy from requested_by (user_id might not exist in bookings). Running fallback cleanup...");
             try {
-                // Fallback: Delete bookings with user_id 0 as they are orphaned/corrupted
+                // Fallback: Delete bookings with requested_by 0 or null as they are orphaned/corrupted
                 int deletedRows = jdbcTemplate.update(
-                    "DELETE FROM bookings WHERE user_id = 0"
+                    "DELETE FROM bookings WHERE requested_by = 0 OR requested_by IS NULL"
                 );
                 log.info("Fallback completed. Deleted {} orphaned rows from bookings table.", deletedRows);
             } catch (Exception ex) {
-                log.error("Critical: Failed to clean up invalid user IDs. Manual DB intervention may be required.", ex);
+                log.error("Critical: Failed to clean up invalid requested_by IDs in bookings.", ex);
             }
+        }
+
+        // 2. Fix notifications table
+        try {
+            int updatedNotifs = jdbcTemplate.update(
+                "UPDATE notifications SET user_id = 1 WHERE user_id = 0"
+            );
+            if (updatedNotifs > 0) {
+                log.info("Repaired {} orphaned notifications.", updatedNotifs);
+            }
+        } catch (Exception e) {
+            log.error("Failed to repair notifications table.", e);
+        }
+
+        // 3. Fix notif_preferences table
+        try {
+            int updatedPrefs = jdbcTemplate.update(
+                "UPDATE notif_preferences SET user_id = 1 WHERE user_id = 0"
+            );
+            if (updatedPrefs > 0) {
+                log.info("Repaired {} orphaned notification preferences.", updatedPrefs);
+            }
+        } catch (Exception e) {
+            log.error("Failed to repair notif_preferences table.", e);
         }
     }
 }

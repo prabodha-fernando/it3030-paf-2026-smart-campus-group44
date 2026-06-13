@@ -45,6 +45,22 @@ public class BookingController {
                         page, size));
     }
 
+    @GetMapping("/my")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Page<BookingResponseDto>> getMyBookings(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(bookingService.getMyBookings(page, size));
+    }
+
+    @GetMapping("/pending-approval")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN','HOD','FACILITY_MANAGER')")
+    public ResponseEntity<Page<BookingResponseDto>> getBookingsPendingApproval(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(bookingService.getBookingsPendingApproval(page, size));
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<BookingResponseDto> getBooking(@PathVariable Long id) {
@@ -60,7 +76,7 @@ public class BookingController {
     }
 
     @PatchMapping("/{id}/approve")
-    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN','HOD','FACILITY_MANAGER')")
     public ResponseEntity<BookingResponseDto> approveBooking(
             @PathVariable Long id,
             @Valid @RequestBody BookingDecisionDto decision) {
@@ -68,7 +84,7 @@ public class BookingController {
     }
 
     @PatchMapping("/{id}/reject")
-    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN','HOD','FACILITY_MANAGER')")
     public ResponseEntity<BookingResponseDto> rejectBooking(
             @PathVariable Long id,
             @Valid @RequestBody BookingDecisionDto decision) {

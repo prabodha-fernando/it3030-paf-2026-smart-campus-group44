@@ -9,7 +9,7 @@ import ResourceModal from '../components/resources/ResourceModal'
 import FacilitiesSidebar from '../components/resources/FacilitiesSidebar'
 import StatusBadge from '../components/resources/StatusBadge'
 import {
-  getAllResources, searchResources, createResource, updateResource, deleteResource
+  getAllResources, createResource, updateResource, deleteResource
 } from '../api/resourceApi'
 
 const getTypeStyle = (type = '') => {
@@ -235,7 +235,7 @@ const StatCard = ({ label, value, colorClass, iconBgClass, children }) => (
 )
 
 const ResourcesPage = () => {
-  const { isAdmin } = useAuth()
+  useAuth()
   const navigate = useNavigate()
   const forceAdmin = true // 🚨 TEMPORARY UI TESTING OVERRIDE
 
@@ -251,13 +251,13 @@ const ResourcesPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [currentResource, setCurrentResource] = useState(null)
 
-  const fetchResources = useCallback(async (currentFilters = null) => {
+  const fetchResources = useCallback(async () => {
     setLoading(true)
     try {
       // Fetch resources here (example, adjust as needed)
       const data = await getAllResources()
       setResources(data)
-    } catch (err) {
+    } catch {
       toast.error('Failed to fetch resources')
     } finally {
       setLoading(false)
@@ -289,7 +289,7 @@ const ResourcesPage = () => {
   const clearSearch = () => {
     const emptyFilters = { type: '', location: '', status: '', minCapacity: '' }
     setFilters(emptyFilters)
-    fetchResources(emptyFilters)
+    fetchResources()
   }
 
   const handleAddClick = () => { setCurrentResource(null); setIsModalOpen(true) }

@@ -44,6 +44,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class TicketService {
 
     private static final Path UPLOAD_ROOT = Paths.get("uploads", "tickets");
@@ -292,9 +293,8 @@ public class TicketService {
         try {
             Files.createDirectories(UPLOAD_ROOT);
 
-            String originalName = file.getOriginalFilename() == null
-                    ? "file.bin"
-                    : file.getOriginalFilename();
+            String rawOriginalName = file.getOriginalFilename();
+            String originalName = rawOriginalName == null ? "file.bin" : rawOriginalName;
             String safeName = originalName.replaceAll("[^a-zA-Z0-9._-]", "_");
             String finalName = UUID.randomUUID() + "_" + safeName;
 
@@ -446,7 +446,8 @@ public class TicketService {
     }
 
     private void validateAttachmentFile(MultipartFile file) {
-        String contentType = file.getContentType() == null ? "" : file.getContentType().toLowerCase();
+        String rawContentType = file.getContentType();
+        String contentType = rawContentType == null ? "" : rawContentType.toLowerCase();
         if (!ALLOWED_CONTENT_TYPES.contains(contentType)) {
             throw new ConflictException("Only PNG, JPG, JPEG, or WEBP files are allowed");
         }

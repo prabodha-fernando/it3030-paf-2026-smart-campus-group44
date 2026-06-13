@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { startOfToday } from 'date-fns'
 import toast from 'react-hot-toast'
@@ -49,7 +49,7 @@ const ViewToggle = ({ view, onViewChange }) => (
 )
 
 const BookingsPage = () => {
-  const { user, canApproveBookings } = useAuth()
+  const { canApproveBookings } = useAuth()
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -61,21 +61,21 @@ const BookingsPage = () => {
   const navigate = useNavigate()
   const [initialFormData, setInitialFormData] = useState(null)
 
-  const loadBookings = async () => {
+  const loadBookings = useCallback(async () => {
     setLoading(true)
     try {
       const params = {}
       if (statusFilter) params.status = statusFilter
       const { data } = await getBookings(params)
       setBookings(data.content || data)
-    } catch (error) {
+    } catch {
       toast.error('Unable to load bookings')
     } finally {
       setLoading(false)
     }
-  }
+  }, [statusFilter])
 
-  useEffect(() => { loadBookings() }, [statusFilter, refreshKey])
+  useEffect(() => { loadBookings() }, [loadBookings, refreshKey])
 
   useEffect(() => {
     if (location.state?.initialResource) {

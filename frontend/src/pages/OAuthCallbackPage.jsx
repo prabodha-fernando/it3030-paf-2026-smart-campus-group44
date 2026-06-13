@@ -25,7 +25,7 @@ const OAuthCallbackPage = () => {
         navigate(firstLogin ? '/onboarding' : '/dashboard', { replace: true })
       })
       .catch(() => navigate('/login?error=auth_failed', { replace: true }))
-  }, [])
+  }, [login, navigate])
 
   return <LoadingSpinner center />
 }

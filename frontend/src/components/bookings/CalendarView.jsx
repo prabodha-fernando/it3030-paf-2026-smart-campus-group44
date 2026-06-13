@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar'
 import { format, parse, startOfWeek, getDay } from 'date-fns'
 import { enUS } from 'date-fns/locale'
@@ -62,6 +62,7 @@ const CalendarView = ({ statusFilter, onEventClick }) => {
     const start = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
     const end = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
     loadEvents(start, end)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter])
 
   // Custom event component for better styling
@@ -126,7 +127,7 @@ const CalendarView = ({ statusFilter, onEventClick }) => {
   }
 
   // Handle calendar navigation
-  const handleNavigate = (date, view) => {
+  const handleNavigate = (date) => {
     setCurrentDate(date)
     // Load events for the new date range
     const start = new Date(date.getFullYear(), date.getMonth(), 1)
