@@ -14,11 +14,11 @@ import com.smartcampus.model.Booking;
 import com.smartcampus.model.User;
 import com.smartcampus.repository.BookingRepository;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,7 +44,7 @@ public class BookingService {
                 request.getStartTime(), request.getEndTime());
 
         User user = authService.getCurrentUser();
-        Booking booking = Booking.builder()
+        @NonNull Booking booking = Booking.builder()
                 .resourceId(resourceId)
                 .resourceName(request.getResourceName())
                 .resourceType(request.getResourceType())
@@ -95,8 +95,7 @@ public class BookingService {
             int page,
             int size) {
         User currentUser = authService.getCurrentUser();
-        Pageable pageable = PageRequest.of(page, size,
-                Sort.by(Sort.Order.desc("date"), Sort.Order.asc("startTime")));
+        Pageable pageable = PageRequest.of(page, size);
 
         Page<Booking> bookings;
         if (isAdmin(currentUser)) {
@@ -108,7 +107,7 @@ public class BookingService {
             } else if (status.isPresent()) {
                 bookings = bookingRepository.findAllByStatus(status.get(), pageable);
             } else {
-                bookings = bookingRepository.findAll(pageable);
+                bookings = bookingRepository.findAllWithRequestedByOrderByDateDescStartTimeAsc(pageable);
             }
         } else {
             if (resourceId.isPresent() && status.isPresent()) {
@@ -250,7 +249,7 @@ public class BookingService {
         return bookings.map(this::toCalendarEventDto);
     }
 
-    private Booking findBooking(Long id) {
+    private Booking findBooking(@NonNull Long id) {
         return bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Booking not found"));

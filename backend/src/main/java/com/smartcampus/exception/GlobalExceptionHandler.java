@@ -1,10 +1,10 @@
 package com.smartcampus.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -15,6 +15,7 @@ import java.util.Map;
 import jakarta.persistence.EntityNotFoundException;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
@@ -84,14 +85,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGeneral(
             Exception ex, HttpServletRequest request) {
-        // Log the error so you can see the stack trace in your terminal
-        ex.printStackTrace();
+        log.error("Unhandled exception for {} {}", request.getMethod(), request.getRequestURI(), ex);
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiError.builder()
                         .status(500)
                         .error("Internal Server Error")
-                        // Adding ex.getMessage() helps you debug faster on port 5174
                         .message("An unexpected error occurred: " + ex.getMessage())
                         .path(request.getRequestURI())
                         .build());

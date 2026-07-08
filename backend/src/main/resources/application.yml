@@ -6,8 +6,9 @@ spring:
     default: local
 
   jackson:
-    serialization:
-      write-dates-as-timestamps: false
+    datatype:
+      datetime:
+        write-dates-as-timestamps: false
 
   datasource:
     url: jdbc:mysql://${AZURE_MYSQL_HOST}:3306/${AZURE_MYSQL_DB}?useSSL=true&requireSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true
