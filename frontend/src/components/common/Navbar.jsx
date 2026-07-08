@@ -13,8 +13,13 @@ const Navbar = ({ fullWidth = false }) => {
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
   const [avatarLoadFailed, setAvatarLoadFailed] = useState(false)
+  const [prevPhotoUrl, setPrevPhotoUrl] = useState(user?.photoUrl)
   const menuRef = useRef(null)
 
+  if (user?.photoUrl !== prevPhotoUrl) {
+    setPrevPhotoUrl(user?.photoUrl)
+    setAvatarLoadFailed(false)
+  }
 
   useEffect(() => {
     const handler = (e) => {
@@ -23,10 +28,6 @@ const Navbar = ({ fullWidth = false }) => {
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
-
-  useEffect(() => {
-    setAvatarLoadFailed(false)
-  }, [user?.photoUrl])
 
   const handleLogout = async () => {
     const refreshToken = getRefreshToken()

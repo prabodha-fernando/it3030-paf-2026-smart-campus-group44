@@ -5,6 +5,7 @@ import useAuth from './useAuth'
 
 const useNotifications = () => {
   const store = useNotificationStore()
+  const { setNotifications, setUnreadCount } = store
   const { isAuthenticated } = useAuth()
 
   useEffect(() => {
@@ -17,12 +18,12 @@ const useNotifications = () => {
           getNotifications({ page: 0, size: 20 }),
           getUnreadCount(),
         ])
-        store.setNotifications(notifRes.data.content || [])
-        store.setUnreadCount(countRes.data?.count ?? 0)
+        setNotifications(notifRes.data.content || [])
+        setUnreadCount(countRes.data?.count ?? 0)
       } catch { /* silent */ }
     }
     load()
-  }, [isAuthenticated])
+  }, [isAuthenticated, setNotifications, setUnreadCount])
 
   const handleMarkAsRead = async (id) => {
     try {

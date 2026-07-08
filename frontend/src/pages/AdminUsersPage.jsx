@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Layout from '../components/common/Layout'
 import { getAllUsers, changeUserRole, getRoleRequests, processRoleRequest } from '../api/authApi'
 import { getRoleBadgeClass, getRoleLabel, getInitials } from '../utils/roleUtils'
@@ -21,22 +21,22 @@ const AdminUsersPage = () => {
   const [adminNote,    setAdminNote]    = useState({})
   const [processingId, setProcessingId] = useState(null)
 
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     try {
       const { data } = await getAllUsers({ role: roleFilter || undefined, page: 0, size: 50 })
       setUsers(data)
     } catch { toast.error('Failed to load users') }
     finally { setLoading(false) }
-  }
+  }, [roleFilter])
 
-  const loadRequests = async () => {
+  const loadRequests = useCallback(async () => {
     try {
       const { data } = await getRoleRequests()
       setRequests(data)
     } catch { /* silent */ }
-  }
+  }, [])
 
-  useEffect(() => { loadUsers(); loadRequests() }, [roleFilter])
+  useEffect(() => { loadUsers(); loadRequests() }, [loadUsers, loadRequests])
 
   useEffect(() => {
     setAvatarLoadFailed({})

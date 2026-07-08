@@ -8,7 +8,7 @@ import ResourceModal from '../components/resources/ResourceModal'
 import FacilitiesSidebar from '../components/resources/FacilitiesSidebar'
 import StatusBadge from '../components/resources/StatusBadge'
 import {
-  getAllResources, searchResources, createResource, updateResource, deleteResource
+  getAllResources, createResource, updateResource, deleteResource
 } from '../api/resourceApi'
 
 // ─── Type colour helper ───────────────────────────────────────────────────────

@@ -34,17 +34,19 @@ public class DataFixConfig {
         // Fix notifications table
         if (columnExists("notifications", "user_id")) {
             int updatedNotifs = jdbcTemplate.update(
-                "UPDATE notifications SET user_id = 1 WHERE user_id = 0"
-            );
-            if (updatedNotifs > 0) log.info("Repaired {} orphaned notifications.", updatedNotifs);
+                    "UPDATE notifications SET user_id = 1 WHERE user_id = 0");
+            if (updatedNotifs > 0) {
+                log.info("Repaired {} orphaned notifications.", updatedNotifs);
+            }
         }
 
         // Fix notif_preferences table
         if (columnExists("notif_preferences", "user_id")) {
             int updatedPrefs = jdbcTemplate.update(
-                "UPDATE notif_preferences SET user_id = 1 WHERE user_id = 0"
-            );
-            if (updatedPrefs > 0) log.info("Repaired {} orphaned notification preferences.", updatedPrefs);
+                    "UPDATE notif_preferences SET user_id = 1 WHERE user_id = 0");
+            if (updatedPrefs > 0) {
+                log.info("Repaired {} orphaned notification preferences.", updatedPrefs);
+            }
         }
     }
 

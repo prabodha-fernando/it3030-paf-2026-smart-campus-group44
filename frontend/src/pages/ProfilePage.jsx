@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import useAuth from '../hooks/useAuth'
 import { getMyProfile, updateMyProfile, getRoleRequests, cancelRoleRequest } from '../api/authApi'
 import { getPreferences, updatePreferences } from '../api/notificationApi'
@@ -11,7 +10,7 @@ import { ROLE_LABELS } from '../utils/constants'
 import toast from 'react-hot-toast'
 
 const ProfilePage = () => {
-  const { user, refreshUser } = useAuth()
+  const { user } = useAuth()
   const [editing, setEditing] = useState(false)
   const [loading, setLoading] = useState(false)
   const [showRoleModal, setShowRoleModal] = useState(false)
@@ -46,7 +45,7 @@ const ProfilePage = () => {
     getRoleRequests()
   .then(({ data }) => {
     const pending = data.find(
-      (r) => r.status === 'PENDING' && r.userId === user.id
+      (r) => r.status === 'PENDING' && r.userId === user?.id
     )
     setPendingRequest(pending || null)
   })
@@ -55,7 +54,7 @@ const ProfilePage = () => {
     getPreferences()
       .then(({ data }) => setPrefs(data))
       .catch(() => {})
-  }, [])
+  }, [user?.id])
 
   const handleSaveProfile = async () => {
     // Validate phone

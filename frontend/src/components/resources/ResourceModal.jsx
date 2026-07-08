@@ -29,18 +29,18 @@ const SectionDivider = ({ label }) => (
   </div>
 )
 
-const ResourceModal = ({ isOpen, onClose, onSubmit, isEditing, resource }) => {
-  const defaultFormState = {
-    name: '',
-    type: '',
-    capacity: 1,
-    location: '',
-    status: 'ACTIVE',
-    availabilityStart: '08:00', // Removed seconds for better UX
-    availabilityEnd: '18:00',   // Removed seconds for better UX
-    description: ''
-  }
+const defaultFormState = {
+  name: '',
+  type: '',
+  capacity: 1,
+  location: '',
+  status: 'ACTIVE',
+  availabilityStart: '08:00', // Removed seconds for better UX
+  availabilityEnd: '18:00',   // Removed seconds for better UX
+  description: ''
+}
 
+const ResourceModal = ({ isOpen, onClose, onSubmit, isEditing, resource }) => {
   const [formData, setFormData] = useState(defaultFormState)
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false) // Added UX loading state
