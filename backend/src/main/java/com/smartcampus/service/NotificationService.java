@@ -14,6 +14,7 @@ import com.smartcampus.repository.NotificationRepository;
 import com.smartcampus.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -104,15 +105,15 @@ public class NotificationService {
     }
 
     @Transactional
-    public void createAndSend(Long userId, String title, String message,
-                               NotifCategory category, NotifPriority priority,
+    public void createAndSend(@NonNull Long userId, @NonNull String title, @NonNull String message,
+                               @NonNull NotifCategory category, @NonNull NotifPriority priority,
                                Long referenceId, String referenceType) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) return;
 
         if (!shouldNotify(user, category)) return;
 
-        Notification notification = Notification.builder()
+        @NonNull Notification notification = Notification.builder()
                 .user(user)
                 .title(title)
                 .message(message)
@@ -124,10 +125,10 @@ public class NotificationService {
                 .build();
 
         notificationRepository.save(notification);
-        NotificationDto dto = toDto(notification);
+        @NonNull NotificationDto dto = toDto(notification);
 
         messagingTemplate.convertAndSendToUser(
-                user.getEmail(), "/queue/notifications", dto);
+                java.util.Objects.requireNonNull(user.getEmail()), "/queue/notifications", dto);
         messagingTemplate.convertAndSend("/topic/admin-feed", dto);
     }
 
@@ -155,9 +156,9 @@ public class NotificationService {
     }
 
     @Transactional
-    public void deleteNotification(Long id) {
+    public void deleteNotification(@NonNull Long id) {
         User user = authService.getCurrentUser();
-        Notification notif = notificationRepository.findByIdAndUser(id, user)
+        @NonNull Notification notif = notificationRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Notification not found"));
         notificationRepository.delete(notif);
@@ -205,7 +206,7 @@ public class NotificationService {
     }
 
     private NotifPreference createDefaultPreference(User user) {
-        NotifPreference pref = NotifPreference.builder()
+        @NonNull NotifPreference pref = NotifPreference.builder()
                 .user(user)
                 .bookingUpdates(true)
                 .ticketUpdates(true)

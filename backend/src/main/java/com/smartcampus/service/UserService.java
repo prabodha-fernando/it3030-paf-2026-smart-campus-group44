@@ -9,6 +9,7 @@ import com.smartcampus.exception.ResourceNotFoundException;
 import com.smartcampus.model.User;
 import com.smartcampus.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
@@ -53,7 +54,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserDto changeRole(Long userId, ChangeRoleRequest request) {
+    public UserDto changeRole(@NonNull Long userId, ChangeRoleRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "User not found with id: " + userId));

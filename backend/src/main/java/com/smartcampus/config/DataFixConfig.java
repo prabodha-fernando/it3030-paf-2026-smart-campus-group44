@@ -15,51 +15,49 @@ public class DataFixConfig {
 
     @PostConstruct
     public void fixInvalidUserIds() {
-        log.info("Starting data fix for uninitialized user IDs...");
+        log.info("Starting data fix for uninitialized user IDs in bookings table...");
+        boolean bookingsHasUserId = columnExists("bookings", "user_id");
+        boolean bookingsHasRequestedBy = columnExists("bookings", "requested_by");
 
-        // 1. Fix bookings table
-        try {
-            // Attempt to sync user_id from requested_by if user_id exists
-            // This handles the case where data was previously stored in the old column name
+        if (bookingsHasUserId && bookingsHasRequestedBy) {
             int updatedRows = jdbcTemplate.update(
-                "UPDATE bookings SET user_id = requested_by WHERE user_id = 0"
-            );
-            log.info("Bookings user_id migration completed. Updated {} rows.", updatedRows);
-        } catch (Exception e) {
-            log.warn("Could not copy from requested_by (user_id might not exist in bookings). Running fallback cleanup...");
-            try {
-                // Fallback: Delete bookings with requested_by 0 or null as they are orphaned/corrupted
-                int deletedRows = jdbcTemplate.update(
-                    "DELETE FROM bookings WHERE requested_by = 0 OR requested_by IS NULL"
-                );
-                log.info("Fallback completed. Deleted {} orphaned rows from bookings table.", deletedRows);
-            } catch (Exception ex) {
-                log.error("Critical: Failed to clean up invalid requested_by IDs in bookings.", ex);
-            }
+                    "UPDATE bookings SET user_id = requested_by WHERE user_id = 0");
+            log.info("Data fix completed. Updated {} rows in bookings table.", updatedRows);
+        } else if (bookingsHasRequestedBy) {
+            int deletedRows = jdbcTemplate.update(
+                    "DELETE FROM bookings WHERE requested_by = 0 OR requested_by IS NULL");
+            log.info("Fallback completed. Deleted {} orphaned rows from bookings table.", deletedRows);
+        } else {
+            log.warn("Skipping bookings data fix because no known user reference column exists.");
         }
 
-        // 2. Fix notifications table
-        try {
+        // Fix notifications table
+        if (columnExists("notifications", "user_id")) {
             int updatedNotifs = jdbcTemplate.update(
-                "UPDATE notifications SET user_id = 1 WHERE user_id = 0"
-            );
+                    "UPDATE notifications SET user_id = 1 WHERE user_id = 0");
             if (updatedNotifs > 0) {
                 log.info("Repaired {} orphaned notifications.", updatedNotifs);
             }
-        } catch (Exception e) {
-            log.error("Failed to repair notifications table.", e);
         }
 
-        // 3. Fix notif_preferences table
-        try {
+        // Fix notif_preferences table
+        if (columnExists("notif_preferences", "user_id")) {
             int updatedPrefs = jdbcTemplate.update(
-                "UPDATE notif_preferences SET user_id = 1 WHERE user_id = 0"
-            );
+                    "UPDATE notif_preferences SET user_id = 1 WHERE user_id = 0");
             if (updatedPrefs > 0) {
                 log.info("Repaired {} orphaned notification preferences.", updatedPrefs);
             }
-        } catch (Exception e) {
-            log.error("Failed to repair notif_preferences table.", e);
         }
+    }
+
+    private boolean columnExists(String tableName, String columnName) {
+        Integer count = jdbcTemplate.queryForObject("""
+                SELECT COUNT(*)
+                FROM information_schema.columns
+                WHERE table_schema = DATABASE()
+                  AND table_name = ?
+                  AND column_name = ?
+                """, Integer.class, tableName, columnName);
+        return count != null && count > 0;
     }
 }

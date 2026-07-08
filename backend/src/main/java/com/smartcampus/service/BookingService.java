@@ -14,11 +14,11 @@ import com.smartcampus.model.Booking;
 import com.smartcampus.model.User;
 import com.smartcampus.repository.BookingRepository;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,9 +29,6 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class BookingService {
-
-    private static final String DATE_PROPERTY = "date";
-    private static final String START_TIME_PROPERTY = "startTime";
 
     private final BookingRepository bookingRepository;
     private final AuthService authService;
@@ -47,7 +44,7 @@ public class BookingService {
                 request.getStartTime(), request.getEndTime());
 
         User user = authService.getCurrentUser();
-        Booking booking = Booking.builder()
+        @NonNull Booking booking = Booking.builder()
                 .resourceId(resourceId)
                 .resourceName(request.getResourceName())
                 .resourceType(request.getResourceType())
@@ -98,8 +95,7 @@ public class BookingService {
             int page,
             int size) {
         User currentUser = authService.getCurrentUser();
-        Pageable pageable = PageRequest.of(page, size,
-                Sort.by(Sort.Order.desc(DATE_PROPERTY), Sort.Order.asc(START_TIME_PROPERTY)));
+        Pageable pageable = PageRequest.of(page, size);
 
         Page<Booking> bookings;
         if (isAdmin(currentUser)) {
@@ -111,7 +107,7 @@ public class BookingService {
             } else if (status.isPresent()) {
                 bookings = bookingRepository.findAllByStatus(status.get(), pageable);
             } else {
-                bookings = bookingRepository.findAll(pageable);
+                bookings = bookingRepository.findAllWithRequestedByOrderByDateDescStartTimeAsc(pageable);
             }
         } else {
             if (resourceId.isPresent() && status.isPresent()) {
@@ -253,7 +249,7 @@ public class BookingService {
         return bookings.map(this::toCalendarEventDto);
     }
 
-    private Booking findBooking(Long id) {
+    private Booking findBooking(@NonNull Long id) {
         return bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Booking not found"));
@@ -305,8 +301,7 @@ public class BookingService {
 
     public Page<BookingResponseDto> getMyBookings(int page, int size) {
         User currentUser = authService.getCurrentUser();
-        Pageable pageable = PageRequest.of(page, size,
-                Sort.by(Sort.Direction.DESC, DATE_PROPERTY));
+        Pageable pageable = PageRequest.of(page, size);
         return bookingRepository.findAllByRequestedBy(currentUser, pageable).map(this::toDto);
     }
 
@@ -318,8 +313,7 @@ public class BookingService {
             currentUser.getRole() != Role.FACILITY_MANAGER) {
             throw new org.springframework.security.access.AccessDeniedException("You do not have permission to view pending approvals");
         }
-        Pageable pageable = PageRequest.of(page, size,
-                Sort.by(Sort.Direction.ASC, DATE_PROPERTY));
+        Pageable pageable = PageRequest.of(page, size);
         return bookingRepository.findAllByStatus(BookingStatus.PENDING, pageable).map(this::toDto);
     }
 
