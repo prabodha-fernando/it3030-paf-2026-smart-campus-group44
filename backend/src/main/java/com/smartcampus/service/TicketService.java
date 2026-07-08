@@ -23,11 +23,11 @@ import com.smartcampus.repository.TicketCommentRepository;
 import com.smartcampus.repository.TicketRepository;
 import com.smartcampus.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,7 +48,6 @@ public class TicketService {
 
     private static final Path UPLOAD_ROOT = Paths.get("uploads", "tickets");
     private static final long MAX_FILE_SIZE_BYTES = 5L * 1024 * 1024;
-    private static final String CREATED_AT_PROPERTY = "createdAt";
 
     private static final Set<String> ALLOWED_CATEGORIES = Set.of(
         "FACILITY", "ELECTRICAL", "NETWORK", "SECURITY", "OTHER"
@@ -83,7 +82,7 @@ public class TicketService {
             resourceOrLocation = selectedResource.getLocation();
         }
 
-        Ticket ticket = Ticket.builder()
+        @NonNull Ticket ticket = Ticket.builder()
                 .category(normalizeCategory(request.getCategory()))
                 .description(request.getDescription().trim())
                 .priority(normalizePriority(request.getPriority()))
@@ -98,7 +97,7 @@ public class TicketService {
     }
 
     @Transactional
-    public Ticket updateTicket(Long id, TicketUpdateRequest request) {
+    public Ticket updateTicket(@NonNull Long id, TicketUpdateRequest request) {
         Ticket ticket = getTicketById(id);
         User currentUser = authService.getCurrentUser();
         if (!canManageTicket(ticket, currentUser)) {
@@ -127,7 +126,7 @@ public class TicketService {
     }
 
     @Transactional
-    public void deleteTicket(Long id) {
+    public void deleteTicket(@NonNull Long id) {
         Ticket ticket = getTicketById(id);
         User currentUser = authService.getCurrentUser();
         if (!canManageTicket(ticket, currentUser)) {
@@ -160,16 +159,14 @@ public class TicketService {
     @Transactional(readOnly = true)
     public Page<Ticket> listMyTickets(int page, int size) {
         User currentUser = authService.getCurrentUser();
-        Pageable pageable = PageRequest.of(page, size,
-                Sort.by(Sort.Direction.DESC, CREATED_AT_PROPERTY));
+        Pageable pageable = PageRequest.of(page, size);
         return ticketRepository.findAllByUser(currentUser, pageable);
     }
 
     @Transactional(readOnly = true)
     public Page<Ticket> listOpenTickets(int page, int size) {
         User currentUser = authService.getCurrentUser();
-        Pageable pageable = PageRequest.of(page, size,
-                Sort.by(Sort.Direction.DESC, CREATED_AT_PROPERTY));
+        Pageable pageable = PageRequest.of(page, size);
         if (isAdmin(currentUser) || isStaff(currentUser)) {
             return ticketRepository.findAllByStatus(TicketStatus.OPEN, pageable);
         }
@@ -177,7 +174,7 @@ public class TicketService {
     }
 
     @Transactional(readOnly = true)
-    public Ticket getTicketById(Long id) {
+    public Ticket getTicketById(@NonNull Long id) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
 
@@ -228,7 +225,7 @@ public class TicketService {
         Ticket ticket = getTicketById(ticketId);
         User currentUser = authService.getCurrentUser();
 
-        TicketComment comment = TicketComment.builder()
+        @NonNull TicketComment comment = TicketComment.builder()
                 .ticket(ticket)
                 .author(currentUser)
                 .content(request.getContent().trim())
@@ -303,7 +300,7 @@ public class TicketService {
             Path destination = UPLOAD_ROOT.resolve(finalName);
             Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
 
-            TicketAttachment attachment = TicketAttachment.builder()
+            @NonNull TicketAttachment attachment = TicketAttachment.builder()
                     .ticket(ticket)
                     .uploadedBy(currentUser)
                     .fileName(originalName)
@@ -347,13 +344,13 @@ public class TicketService {
     }
 
     @Transactional(readOnly = true)
-    public List<TicketAttachment> getAttachments(Long ticketId) {
+    public List<TicketAttachment> getAttachments(@NonNull Long ticketId) {
         getTicketById(ticketId);
         return ticketAttachmentRepository.findByTicketIdOrderByUploadedAtDesc(ticketId);
     }
 
     @Transactional
-    public Ticket assignTechnician(Long ticketId, Long userId) {
+    public Ticket assignTechnician(@NonNull Long ticketId, @NonNull Long userId) {
         Ticket ticket = getTicketById(ticketId);
         User assignee = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));

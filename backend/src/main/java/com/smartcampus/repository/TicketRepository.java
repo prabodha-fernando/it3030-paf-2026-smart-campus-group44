@@ -14,15 +14,15 @@ import java.util.List;
 public interface TicketRepository extends JpaRepository<Ticket, Long> {
     List<Ticket> findAllByOrderByCreatedAtDesc();
 
-    @Query(value = "select t from Ticket t join fetch t.user where t.user = :user",
+    @Query(value = "select t from Ticket t join fetch t.user where t.user = :user order by t.createdAt desc",
            countQuery = "select count(t) from Ticket t where t.user = :user")
     Page<Ticket> findAllByUser(@Param("user") User user, Pageable pageable);
 
-    @Query(value = "select t from Ticket t join fetch t.user where t.status = :status",
+    @Query(value = "select t from Ticket t join fetch t.user where t.status = :status order by t.createdAt desc",
            countQuery = "select count(t) from Ticket t where t.status = :status")
     Page<Ticket> findAllByStatus(@Param("status") TicketStatus status, Pageable pageable);
 
-    @Query(value = "select t from Ticket t join fetch t.user where t.user = :user and t.status = :status",
+    @Query(value = "select t from Ticket t join fetch t.user where t.user = :user and t.status = :status order by t.createdAt desc",
            countQuery = "select count(t) from Ticket t where t.user = :user and t.status = :status")
     Page<Ticket> findAllByUserAndStatus(@Param("user") User user, @Param("status") TicketStatus status, Pageable pageable);
 

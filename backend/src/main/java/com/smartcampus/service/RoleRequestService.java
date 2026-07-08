@@ -12,6 +12,7 @@ import com.smartcampus.model.User;
 import com.smartcampus.repository.RoleRequestRepository;
 import com.smartcampus.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -43,7 +44,7 @@ public class RoleRequestService {
                     "You already have the requested role");
         }
 
-        RoleRequest roleRequest = RoleRequest.builder()
+        @NonNull RoleRequest roleRequest = RoleRequest.builder()
                 .user(user)
                 .currentRole(user.getRole())
                 .requestedRole(request.getRequestedRole())
@@ -74,7 +75,7 @@ public class RoleRequestService {
     }
 
     @Transactional
-    public RoleRequestDto processRequest(Long id, ProcessRoleRequestDto request) {
+    public RoleRequestDto processRequest(@NonNull Long id, ProcessRoleRequestDto request) {
         User admin    = authService.getCurrentUser();
         RoleRequest rr = roleRequestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -106,7 +107,7 @@ public class RoleRequestService {
     }
 
     @Transactional
-    public void cancelRequest(Long id) {
+    public void cancelRequest(@NonNull Long id) {
         User currentUser = authService.getCurrentUser();
         RoleRequest rr = roleRequestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(

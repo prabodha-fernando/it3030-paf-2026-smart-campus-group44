@@ -6,6 +6,7 @@ import com.smartcampus.model.ResourceStatus;
 import com.smartcampus.repository.ResourceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +28,7 @@ public class ResourceService {
     }
 
     @Transactional(readOnly = true)
-    public Resource getById(Long id) {
+    public Resource getById(@NonNull Long id) {
         log.info("Fetching resource with ID: {}", id);
         return resourceRepository.findById(id)
                 // CRITICAL FIX: Maps directly to a 404 Not Found instead of crashing with a 500
@@ -40,7 +41,7 @@ public class ResourceService {
     @Transactional
     public Resource create(ResourceRequest request) {
         log.info("Creating new resource: {}", request.getName());
-        Resource resource = Resource.builder()
+        @NonNull Resource resource = Resource.builder()
                 .name(request.getName())
                 .type(request.getType())
                 .capacity(request.getCapacity())
@@ -54,7 +55,7 @@ public class ResourceService {
     }
 
     @Transactional
-    public Resource update(Long id, ResourceRequest request) {
+    public Resource update(@NonNull Long id, ResourceRequest request) {
         log.info("Updating resource with ID: {}", id);
         Resource existingResource = getById(id);
 
@@ -71,7 +72,7 @@ public class ResourceService {
     }
 
     @Transactional
-    public void delete(Long id) {
+    public void delete(@NonNull Long id) {
         log.info("Attempting to delete resource with ID: {}", id);
         if (!resourceRepository.existsById(id)) {
             log.warn("Deletion failed. Resource ID {} does not exist.", id);
