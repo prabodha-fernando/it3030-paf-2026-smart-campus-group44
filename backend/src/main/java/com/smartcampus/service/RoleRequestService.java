@@ -22,7 +22,6 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings("null")
 public class RoleRequestService {
 
     private final RoleRequestRepository roleRequestRepository;

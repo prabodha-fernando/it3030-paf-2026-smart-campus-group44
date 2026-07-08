@@ -16,7 +16,6 @@ import java.util.List;
 @Slf4j // Added for professional server logging
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings("null")
 public class ResourceService {
 
     private final ResourceRepository resourceRepository;

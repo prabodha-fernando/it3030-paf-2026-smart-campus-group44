@@ -7,8 +7,6 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
-import org.springframework.lang.NonNull;
-
 @Configuration
 @EnableWebSocketMessageBroker
 @RequiredArgsConstructor // Automatically creates a constructor for AppProperties
@@ -17,14 +15,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final AppProperties appProperties; // Brings in your frontend-url from application.yml
 
     @Override
-    public void configureMessageBroker(@NonNull MessageBrokerRegistry registry) {
+    public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.enableSimpleBroker("/queue", "/topic");
         registry.setApplicationDestinationPrefixes("/app");
         registry.setUserDestinationPrefix("/user");
     }
 
     @Override
-    public void registerStompEndpoints(@NonNull StompEndpointRegistry registry) {
+    public void registerStompEndpoints(StompEndpointRegistry registry) {
         
         // 1. Endpoint for clients using SockJS fallback
         registry.addEndpoint("/ws")

@@ -44,11 +44,11 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings("null")
 public class TicketService {
 
     private static final Path UPLOAD_ROOT = Paths.get("uploads", "tickets");
     private static final long MAX_FILE_SIZE_BYTES = 5L * 1024 * 1024;
+    private static final String CREATED_AT_PROPERTY = "createdAt";
 
     private static final Set<String> ALLOWED_CATEGORIES = Set.of(
         "FACILITY", "ELECTRICAL", "NETWORK", "SECURITY", "OTHER"
@@ -160,14 +160,16 @@ public class TicketService {
     @Transactional(readOnly = true)
     public Page<Ticket> listMyTickets(int page, int size) {
         User currentUser = authService.getCurrentUser();
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by(Sort.Direction.DESC, CREATED_AT_PROPERTY));
         return ticketRepository.findAllByUser(currentUser, pageable);
     }
 
     @Transactional(readOnly = true)
     public Page<Ticket> listOpenTickets(int page, int size) {
         User currentUser = authService.getCurrentUser();
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by(Sort.Direction.DESC, CREATED_AT_PROPERTY));
         if (isAdmin(currentUser) || isStaff(currentUser)) {
             return ticketRepository.findAllByStatus(TicketStatus.OPEN, pageable);
         }

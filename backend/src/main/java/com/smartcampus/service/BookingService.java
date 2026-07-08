@@ -28,8 +28,10 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings("null")
 public class BookingService {
+
+    private static final String DATE_PROPERTY = "date";
+    private static final String START_TIME_PROPERTY = "startTime";
 
     private final BookingRepository bookingRepository;
     private final AuthService authService;
@@ -97,7 +99,7 @@ public class BookingService {
             int size) {
         User currentUser = authService.getCurrentUser();
         Pageable pageable = PageRequest.of(page, size,
-                Sort.by(Sort.Order.desc("date"), Sort.Order.asc("startTime")));
+                Sort.by(Sort.Order.desc(DATE_PROPERTY), Sort.Order.asc(START_TIME_PROPERTY)));
 
         Page<Booking> bookings;
         if (isAdmin(currentUser)) {
@@ -303,7 +305,8 @@ public class BookingService {
 
     public Page<BookingResponseDto> getMyBookings(int page, int size) {
         User currentUser = authService.getCurrentUser();
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "date"));
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by(Sort.Direction.DESC, DATE_PROPERTY));
         return bookingRepository.findAllByRequestedBy(currentUser, pageable).map(this::toDto);
     }
 
@@ -315,7 +318,8 @@ public class BookingService {
             currentUser.getRole() != Role.FACILITY_MANAGER) {
             throw new org.springframework.security.access.AccessDeniedException("You do not have permission to view pending approvals");
         }
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "date"));
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by(Sort.Direction.ASC, DATE_PROPERTY));
         return bookingRepository.findAllByStatus(BookingStatus.PENDING, pageable).map(this::toDto);
     }
 
