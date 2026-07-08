@@ -60,6 +60,7 @@ const BookingsPage = () => {
   const location = useLocation()
   const navigate = useNavigate()
   const [initialFormData, setInitialFormData] = useState(null)
+  const [showBookingForm, setShowBookingForm] = useState(false)
 
   const loadBookings = useCallback(async () => {
     setLoading(true)
@@ -129,8 +130,6 @@ const BookingsPage = () => {
       booking.requestedByEmail?.toLowerCase().includes(term)
     )
   }, [sortedBookings, searchTerm])
-
-  const [showBookingForm, setShowBookingForm] = useState(false)
 
   const handleFormClose = () => {
     setShowBookingForm(false)
